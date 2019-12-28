@@ -5,38 +5,6 @@
 
 namespace {
 
-const int rows = 9;
-const int columns = 9;
-const int values = 9;
-const int min_value = 0;
-const int max_value = 9;
-const int minibox_size = 3;
-
-Minisat::Var toVar(int row, int column, int value) {
-    assert(row >= 0 && row < rows && "Attempt to get var for nonexistant row");
-    assert(column >= 0 && column < columns && "Attempt to get var for nonexistant column");
-    assert(value >= 0 && value < values && "Attempt to get var for nonexistant value");
-    return row * columns * values + column * values + value;
-}
-
-bool is_valid(board const& b) {
-    if (b.size() != rows) {
-        return false;
-    }
-    for (int row = 0; row < rows; ++row) {
-        if (b[row].size() != columns) {
-            return false;
-        }
-        for (int col = 0; col < columns; ++col) {
-            auto value = b[row][col];
-            if (value < min_value || value > max_value) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 void log_var(Minisat::Lit lit) {
     if (sign(lit)) {
         std::clog << '-';
@@ -59,13 +27,48 @@ void log_clause(Minisat::Lit lhs, Minisat::Lit rhs) {
 
 } //end anonymous namespace
 
+Solver::Solver(Settings::Sudoku::BoardSettings board_settings, bool write_dimacs)
+    : m_write_dimacs(write_dimacs)
+    , m_board_settings(board_settings)
+{
+    // Initialize the board
+    init_variables();
+    one_square_one_value();
+    non_duplicated_values();
+}
+
+Minisat::Var Solver::toVar(int row, int column, int value)  const{
+    assert(row >= 0 && row < m_board_settings.rows && "Attempt to get var for nonexistant row");
+    assert(column >= 0 && column < m_board_settings.columns && "Attempt to get var for nonexistant column");
+    assert(value >= 0 && value < m_board_settings.values && "Attempt to get var for nonexistant value");
+    return row * m_board_settings.columns * m_board_settings.values + column * m_board_settings.values + value;
+}
+
+bool Solver::is_valid(Board const& b) const {
+    if (b.size() != m_board_settings.rows) {
+        return false;
+    }
+    for (int row = 0; row < m_board_settings.rows; ++row) {
+        if (b[row].size() != m_board_settings.columns) {
+            return false;
+        }
+        for (int col = 0; col < m_board_settings.columns; ++col) {
+            auto value = b[row][col];
+            if (value < m_board_settings.min_value || value > m_board_settings.max_value) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void Solver::init_variables() {
     if (m_write_dimacs) {
         std::clog << "c (row, column, value) = variable\n";
     }
-    for (int r = 0; r < rows; ++r) {
-        for (int c = 0; c < columns; ++c) {
-            for (int v = 0; v < values; ++v) {
+    for (int r = 0; r < m_board_settings.rows; ++r) {
+        for (int c = 0; c < m_board_settings.columns; ++c) {
+            for (int v = 0; v < m_board_settings.values; ++v) {
                 auto var = solver.newVar();
                 if (m_write_dimacs) {
                     std::clog << "c (" << r << ", " << c << ", " << v + 1 << ") = " << var + 1 << '\n';
@@ -92,13 +95,11 @@ void Solver::exactly_one_true(Minisat::vec<Minisat::Lit> const& literals) {
     }
 }
 
-
-
 void Solver::one_square_one_value() {
-    for (int row = 0; row < rows; ++row) {
-        for (int column = 0; column < columns; ++column) {
+    for (int row = 0; row < m_board_settings.rows; ++row) {
+        for (int column = 0; column < m_board_settings.columns; ++column) {
             Minisat::vec<Minisat::Lit> literals;
-            for (int value = 0; value < values; ++value) {
+            for (int value = 0; value < m_board_settings.values; ++value) {
                 literals.push(Minisat::mkLit(toVar(row, column, value)));
             }
             exactly_one_true(literals);
@@ -108,32 +109,32 @@ void Solver::one_square_one_value() {
 
 void Solver::non_duplicated_values() {
     // In each row, for each value, forbid two column sharing that value
-    for (int row = 0; row < rows; ++row) {
-        for (int value = 0; value < values; ++value) {
+    for (int row = 0; row < m_board_settings.rows; ++row) {
+        for (int value = 0; value < m_board_settings.values; ++value) {
             Minisat::vec<Minisat::Lit> literals;
-            for (int column = 0; column < columns; ++column) {
+            for (int column = 0; column < m_board_settings.columns; ++column) {
                 literals.push(Minisat::mkLit(toVar(row, column, value)));
             }
             exactly_one_true(literals);
         }
     }
     // In each column, for each value, forbid two rows sharing that value
-    for (int column = 0; column < columns; ++column) {
-        for (int value = 0; value < values; ++value) {
+    for (int column = 0; column < m_board_settings.columns; ++column) {
+        for (int value = 0; value < m_board_settings.values; ++value) {
             Minisat::vec<Minisat::Lit> literals;
-            for (int row = 0; row < rows; ++row) {
+            for (int row = 0; row < m_board_settings.rows; ++row) {
                 literals.push(Minisat::mkLit(toVar(row, column, value)));
             }
             exactly_one_true(literals);
         }
     }
     // Now forbid sharing in the 3x3 boxes
-    for (int r = 0; r < rows; r += minibox_size) {
-        for (int c = 0; c < columns; c += minibox_size) {
-            for (int value = 0; value < values; ++value) {
+    for (int r = 0; r < m_board_settings.rows; r += m_board_settings.minibox_size) {
+        for (int c = 0; c < m_board_settings.columns; c += m_board_settings.minibox_size) {
+            for (int value = 0; value < m_board_settings.values; ++value) {
                 Minisat::vec<Minisat::Lit> literals;
-                for (int rr = 0; rr < minibox_size; ++rr) {
-                    for (int cc = 0; cc < minibox_size; ++cc) {
+                for (int rr = 0; rr < m_board_settings.minibox_size; ++rr) {
+                    for (int cc = 0; cc < m_board_settings.minibox_size; ++cc) {
                         literals.push(Minisat::mkLit(toVar(r + rr, c + cc, value)));
                     }
                 }
@@ -143,19 +144,11 @@ void Solver::non_duplicated_values() {
     }
 }
 
-Solver::Solver(bool write_dimacs):
-    m_write_dimacs(write_dimacs) {
-    // Initialize the board
-    init_variables();
-    one_square_one_value();
-    non_duplicated_values();
-}
-
-bool Solver::apply_board(board const& b) {
+bool Solver::apply_board(Board const& b) {
     assert(is_valid(b) && "Provided board is not valid!");
     bool ret = true;
-    for (int row = 0; row < rows; ++row) {
-        for (int col = 0; col < columns; ++col) {
+    for (int row = 0; row < m_board_settings.rows; ++row) {
+        for (int col = 0; col < m_board_settings.columns; ++col) {
             auto value = b[row][col];
             if (value != 0) {
                 ret &= solver.addClause(Minisat::mkLit(toVar(row, col, value - 1)));
@@ -169,12 +162,12 @@ bool Solver::solve() {
     return solver.solve();
 }
 
-board Solver::get_solution() const {
-    board b(rows, std::vector<int>(columns));
-    for (int row = 0; row < rows; ++row) {
-        for (int col = 0; col < columns; ++col) {
+Board Solver::get_solution() const {
+    Board b(m_board_settings.rows, std::vector<int>(m_board_settings.columns));
+    for (int row = 0; row < m_board_settings.rows; ++row) {
+        for (int col = 0; col < m_board_settings.columns; ++col) {
             int found = 0;
-            for (int val = 0; val < values; ++val) {
+            for (int val = 0; val < m_board_settings.values; ++val) {
                 if (solver.modelValue(toVar(row, col, val)).isTrue()) {
                     ++found;
                     b[row][col] = val + 1;
