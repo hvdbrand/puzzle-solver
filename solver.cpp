@@ -8,11 +8,14 @@ namespace {
 const int rows = 9;
 const int columns = 9;
 const int values = 9;
+const int min_value = 0;
+const int max_value = 9;
+const int minibox_size = 3;
 
 Minisat::Var toVar(int row, int column, int value) {
-    assert(row >= 0 && row < rows    && "Attempt to get var for nonexistant row");
+    assert(row >= 0 && row < rows && "Attempt to get var for nonexistant row");
     assert(column >= 0 && column < columns && "Attempt to get var for nonexistant column");
-    assert(value >= 0 && value < values   && "Attempt to get var for nonexistant value");
+    assert(value >= 0 && value < values && "Attempt to get var for nonexistant value");
     return row * columns * values + column * values + value;
 }
 
@@ -26,7 +29,7 @@ bool is_valid(board const& b) {
         }
         for (int col = 0; col < columns; ++col) {
             auto value = b[row][col];
-            if (value < 0 || value > 9) {
+            if (value < min_value || value > max_value) {
                 return false;
             }
         }
@@ -125,12 +128,12 @@ void Solver::non_duplicated_values() {
         }
     }
     // Now forbid sharing in the 3x3 boxes
-    for (int r = 0; r < 9; r += 3) {
-        for (int c = 0; c < 9; c += 3) {
+    for (int r = 0; r < rows; r += minibox_size) {
+        for (int c = 0; c < columns; c += minibox_size) {
             for (int value = 0; value < values; ++value) {
                 Minisat::vec<Minisat::Lit> literals;
-                for (int rr = 0; rr < 3; ++rr) {
-                    for (int cc = 0; cc < 3; ++cc) {
+                for (int rr = 0; rr < minibox_size; ++rr) {
+                    for (int cc = 0; cc < minibox_size; ++cc) {
                         literals.push(Minisat::mkLit(toVar(r + rr, c + cc, value)));
                     }
                 }
