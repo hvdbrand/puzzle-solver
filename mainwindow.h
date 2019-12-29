@@ -29,6 +29,7 @@ private slots:
 
 private:
     void change_board_type(Settings::Sudoku::Size new_size);
+    void color_miniboxes();
     Board parse_board();
     void set_board(Board board_to_set);
     bool solve(Board &board_to_solve);
@@ -37,6 +38,7 @@ private:
     Settings::Sudoku::Size m_board_size;
     Settings::Sudoku::BoardSettings m_board_settings;
     Ui::MainWindow *ui;
+
 };
 
 #endif // MAINWINDOW_H

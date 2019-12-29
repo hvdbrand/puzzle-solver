@@ -23,12 +23,53 @@ void MainWindow::change_board_type(Settings::Sudoku::Size new_size)
 {
     m_board_size = new_size;
     m_board_settings = Settings::Sudoku::get_board_settings(new_size);
+
     ui->tableWidget->setRowCount(m_board_settings.rows);
     ui->tableWidget->setColumnCount(m_board_settings.columns);
     ui->tableWidget->clearContents();
     ui->tableWidget->clearFocus();
+    int width = 30;
+    for (int column = 0; column < m_board_settings.columns; ++column)
+    {
+        ui->tableWidget->setColumnWidth(column, width);
+    }
+
     QFont font("Helvetica", 12);
     ui->tableWidget->setFont(font);
+    for (int row = 0; row < m_board_settings.rows; ++ row)
+    {
+        for (int column = 0; column < m_board_settings.columns; ++column)
+        {
+            ui->tableWidget->setItem(row, column, new QTableWidgetItem);
+            ui->tableWidget->item(row, column)->setTextAlignment(Qt::AlignCenter | Qt::AlignHCenter);
+        }
+    }
+
+    color_miniboxes();
+}
+
+void MainWindow::color_miniboxes()
+{
+    QColor color1(255,0,0,50);
+    QColor color2(0,0,255,50);
+    bool start_row_with_colored_minibox = true;
+    for (int row = 0; row < m_board_settings.rows; row += m_board_settings.minibox_size)
+    {
+        bool color_minibox = start_row_with_colored_minibox;
+        for (int column = 0; column < m_board_settings.columns; column += m_board_settings.minibox_size)
+        {
+            QColor color = color_minibox ? color1 : color2;
+            for (int minibox_row = 0; minibox_row < m_board_settings.minibox_size; ++minibox_row)
+            {
+                for (int minibox_column = 0; minibox_column < m_board_settings.minibox_size; ++minibox_column)
+                {
+                    ui->tableWidget->item(row + minibox_row, column + minibox_column)->setBackgroundColor(color);
+                }
+            }
+            color_minibox = !color_minibox;
+        }
+        start_row_with_colored_minibox = !start_row_with_colored_minibox;
+    }
 }
 
 Board MainWindow::parse_board()
@@ -53,16 +94,19 @@ Board MainWindow::parse_board()
 
 void MainWindow::set_board(Board board_to_set)
 {
+    QFont font("Helvetica", 12);
     for (int row = 0; row < m_board_settings.rows; ++row)
     {
         for (int column = 0; column < m_board_settings.columns; ++column)
         {
             QTableWidgetItem* item = ui->tableWidget->item(row, column);
-            bool not_set_yet = (item == nullptr) || (item->text().length() == 0);
-            if ((board_to_set[row][column] != 0) && (not_set_yet))
+            bool board_cell_is_not_empty = board_to_set[row][column] != 0;
+            bool tableitem_is_empty = item->text().length() == 0;
+            if (board_cell_is_not_empty && tableitem_is_empty)
             {
 //                std::cout << "(" << row << ", " << column << ") = " << board_to_set[row][column] << std::endl;
-                ui->tableWidget->setItem(row, column, new QTableWidgetItem(QString::number(board_to_set[row][column])));
+                ui->tableWidget->item(row, column)->setText(QString::number(board_to_set[row][column]));
+                ui->tableWidget->item(row, column)->setFont(font);
             }
         }
     }
@@ -96,9 +140,13 @@ bool MainWindow::solve(Board &board_to_solve)
 
 void MainWindow::on_clearButton_clicked()
 {
-    ui->tableWidget->clearContents();
-    QFont font("Helvetica", 12);
-    ui->tableWidget->setFont(font);
+    for (int row = 0; row < m_board_settings.rows; ++ row)
+    {
+        for (int column = 0; column < m_board_settings.columns; ++column)
+        {
+            ui->tableWidget->item(row, column)->setText("");
+        }
+    }
 }
 
 void MainWindow::on_solveButton_clicked()
