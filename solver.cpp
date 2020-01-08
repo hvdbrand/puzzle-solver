@@ -108,16 +108,20 @@ void Solver::one_square_one_value() {
 }
 
 void Solver::non_duplicated_values() {
-    // In each row, for each value, forbid two column sharing that value
-    for (int row = 0; row < m_board_settings.rows; ++row) {
+    // Allow every value only once in a horizontal region
+    for(auto region_start : m_board_settings.horizontal_regions)
+    {
+        auto start_row = region_start.first;
+        auto start_column = region_start.second;
         for (int value = 0; value < m_board_settings.values; ++value) {
             Minisat::vec<Minisat::Lit> literals;
-            for (int column = 0; column < m_board_settings.columns; ++column) {
-                literals.push(Minisat::mkLit(toVar(row, column, value)));
+            for (int column = 0; column < m_board_settings.values; ++column) {
+                literals.push(Minisat::mkLit(toVar(start_row, start_column + column, value)));
             }
             exactly_one_true(literals);
         }
     }
+
     // In each column, for each value, forbid two rows sharing that value
     for (int column = 0; column < m_board_settings.columns; ++column) {
         for (int value = 0; value < m_board_settings.values; ++value) {
@@ -128,7 +132,8 @@ void Solver::non_duplicated_values() {
             exactly_one_true(literals);
         }
     }
-    // Now forbid sharing in the 3x3 boxes
+
+    // Now forbid sharing in the miniboxes (3x3 or 4x4 boxes)
     for (int r = 0; r < m_board_settings.rows; r += m_board_settings.minibox_size) {
         for (int c = 0; c < m_board_settings.columns; c += m_board_settings.minibox_size) {
             for (int value = 0; value < m_board_settings.values; ++value) {

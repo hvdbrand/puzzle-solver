@@ -63,7 +63,7 @@ int main() {
     try {
         auto board = read_board(std::cin);
         auto t1 = std::chrono::high_resolution_clock::now();
-        Solver s(Settings::Sudoku::get_board_settings(Settings::Sudoku::Size::SIZE_9X9));
+        Solver s(Settings::Sudoku::get_board_settings(Settings::Sudoku::PuzzleType::SUDOKU_9X9));
         if (!s.apply_board(board)) {
             std::clog << "There is a contradiction in the parsed!\n";
             return 2;

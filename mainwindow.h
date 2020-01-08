@@ -28,14 +28,14 @@ private slots:
     void on_comboBox_activated(const QString &m_board_type);
 
 private:
-    void change_board_type(Settings::Sudoku::Size new_size);
+    void change_board_type(Settings::Sudoku::PuzzleType new_size);
     void color_miniboxes();
     Board parse_board();
     void set_board(Board board_to_set);
     bool solve(Board &board_to_solve);
 
 
-    Settings::Sudoku::Size m_board_size;
+    Settings::Sudoku::PuzzleType m_puzzle_type;
     Settings::Sudoku::BoardSettings m_board_settings;
     Ui::MainWindow *ui;
 

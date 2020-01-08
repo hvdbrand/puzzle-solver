@@ -230,7 +230,7 @@
      <rect>
       <x>620</x>
       <y>590</y>
-      <width>86</width>
+      <width>171</width>
       <height>25</height>
      </rect>
     </property>
@@ -242,6 +242,11 @@
     <item>
      <property name="text">
       <string>16 x 16</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>9 x 15 Twin</string>
      </property>
     </item>
    </widget>
