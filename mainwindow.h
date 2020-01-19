@@ -1,10 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "puzzle.hpp"
 #include <QMainWindow>
-
-#include "solver.hpp"
-#include "sudokusettings.hpp"
+#include <vector>
 
 namespace Ui {
 class MainWindow;
@@ -28,17 +27,17 @@ private slots:
     void on_comboBox_activated(const QString &m_board_type);
 
 private:
-    void change_board_type(Settings::Sudoku::PuzzleType new_size);
+    void change_board_type(Settings::PuzzleType new_puzzle_type);
     void color_miniboxes();
     Board parse_board();
     void set_board(Board board_to_set);
     bool solve(Board &board_to_solve);
 
-
-    Settings::Sudoku::PuzzleType m_puzzle_type;
-    Settings::Sudoku::BoardSettings m_board_settings;
     Ui::MainWindow *ui;
 
+    const std::vector<std::pair<std::string, Settings::PuzzleType>> DROPDOWN_TO_PUZZLETYPE;
+
+    Puzzle m_puzzle;
 };
 
 #endif // MAINWINDOW_H

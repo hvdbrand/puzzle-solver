@@ -8,38 +8,38 @@ find_package(Qt5 COMPONENTS Widgets Gui Core REQUIRED)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+add_library(puzzle-solver
+    puzzle.hpp
+    puzzle.cpp
+    sudokusolver.cpp
+    sudokusolver.hpp
+)
+
+target_link_libraries(puzzle-solver
+    MiniSat::libminisat
+)
+
 add_executable(sudoku-cli
     main-cli.cpp
-    sudokusettings.hpp
-    sudokusettings.cpp
-    # Solver
-    solver.cpp
-    solver.hpp
 )
 
 target_link_libraries(sudoku-cli
-    MiniSat::libminisat
+    puzzle-solver
 )
 
 qt5_wrap_ui(ui_wrap mainwindow.ui)
 qt5_wrap_cpp(moc_sources mainwindow.h)
 
-add_executable(puzzle-solver
+add_executable(puzzle-solver-gui
     main.cpp
-    sudokusettings.hpp
-    sudokusettings.cpp
-    # Solver
-    solver.cpp
-    solver.hpp
-    # UI
     mainwindow.cpp
     mainwindow.h
     ${ui_wrap}
     ${moc_sources}
 )
 
-target_link_libraries(puzzle-solver
-    MiniSat::libminisat
+target_link_libraries(puzzle-solver-gui
+    puzzle-solver
     Qt5::Gui
     Qt5::Core
     Qt5::Widgets)

@@ -234,21 +234,6 @@
       <height>25</height>
      </rect>
     </property>
-    <item>
-     <property name="text">
-      <string>9 x 9</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>16 x 16</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>9 x 15 Twin</string>
-     </property>
-    </item>
    </widget>
    <widget class="QTextBrowser" name="output">
     <property name="geometry">

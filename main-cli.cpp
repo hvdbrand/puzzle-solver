@@ -1,11 +1,11 @@
-#include "solver.hpp"
+#include "puzzle.hpp"
 
 #include <iostream>
 #include <string>
 #include <vector>
 #include <chrono>
 
-#include "sudokusettings.hpp"
+
 
 namespace {
 
@@ -63,16 +63,16 @@ int main() {
     try {
         auto board = read_board(std::cin);
         auto t1 = std::chrono::high_resolution_clock::now();
-        Solver s(Settings::Sudoku::get_board_settings(Settings::Sudoku::PuzzleType::SUDOKU_9X9));
-        if (!s.apply_board(board)) {
+        Puzzle puzzle(Settings::PuzzleType::SUDOKU_9X9);
+        if (!puzzle.apply_board(board)) {
             std::clog << "There is a contradiction in the parsed!\n";
             return 2;
         }
-        if (s.solve()) {
+        if (puzzle.solve()) {
             std::chrono::duration<double, std::milli> time_taken = std::chrono::high_resolution_clock::now() - t1;
             std::clog << "Solution found in " << time_taken.count() << " ms\n";
 
-            auto solution = s.get_solution();
+            auto solution = puzzle.get_solution();
             for (auto const& row : solution) {
                 for (auto const& col : row) {
                     std::cout << col << ' ';
