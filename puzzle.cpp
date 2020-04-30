@@ -5,7 +5,8 @@ namespace {
 const std::map<Settings::PuzzleType, Settings::Sudoku::Type> SUDOKU_TYPES {
     {Settings::PuzzleType::SUDOKU_9X9, Settings::Sudoku::Type::S9X9},
     {Settings::PuzzleType::SUDOKU_16X16, Settings::Sudoku::Type::S16X16},
-    {Settings::PuzzleType::TWINSUDOKU_9X15, Settings::Sudoku::Type::T9x15},
+    {Settings::PuzzleType::TWINSUDOKU_9X15, Settings::Sudoku::Type::T9X15},
+    {Settings::PuzzleType::SUDOKU_MIX_9X9_TWICE, Settings::Sudoku::Type::M9X9_TWICE_COUPLED},
     };
 }
 
@@ -34,14 +35,9 @@ int Puzzle::getColumns() const
     return m_board_settings.columns;
 }
 
-bool Puzzle::isTwinSudoku() const
+RegionSet Puzzle::getRegions() const
 {
-    return m_puzzle_type == Settings::PuzzleType::TWINSUDOKU_9X15;
-}
-
-int Puzzle::getMiniboxSize() const
-{
-    return m_board_settings.minibox_size;
+    return m_board_settings.adjacent_regions;
 }
 
 bool Puzzle::apply_board(const Board& board)

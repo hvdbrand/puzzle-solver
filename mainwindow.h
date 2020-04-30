@@ -3,6 +3,7 @@
 
 #include "puzzle.hpp"
 #include <QMainWindow>
+#include <map>
 #include <vector>
 
 namespace Ui {
@@ -28,7 +29,7 @@ private slots:
 
 private:
     void change_board_type(Settings::PuzzleType new_puzzle_type);
-    void color_miniboxes();
+    void color_board();
     Board parse_board();
     void set_board(Board board_to_set);
     bool solve(Board &board_to_solve);
@@ -36,6 +37,7 @@ private:
     Ui::MainWindow *ui;
 
     const std::vector<std::pair<std::string, Settings::PuzzleType>> DROPDOWN_TO_PUZZLETYPE;
+    const std::map<Settings::PuzzleColor, QColor> PUZZLECOLOR_TO_DISPLAYCOLOR;
 
     Puzzle m_puzzle;
 };

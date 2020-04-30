@@ -10,7 +10,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     DROPDOWN_TO_PUZZLETYPE {{"9x9 Sudoku", Settings::PuzzleType::SUDOKU_9X9},
                             {"16x16 Sudoku", Settings::PuzzleType::SUDOKU_16X16},
-                            {"9x15 Twin Sudoku", Settings::PuzzleType::TWINSUDOKU_9X15}},
+                            {"9x15 Twin Sudoku", Settings::PuzzleType::TWINSUDOKU_9X15},
+                            {"Sudoku Mix 9x9 Base", Settings::PuzzleType::SUDOKU_MIX_9X9_TWICE}},
+    PUZZLECOLOR_TO_DISPLAYCOLOR {{Settings::PuzzleColor::COLOR_A, QColor(255,0,0,50) },
+                                 {Settings::PuzzleColor::COLOR_B, QColor(0,0,255,50) },
+                                 {Settings::PuzzleColor::COLOR_C, QColor(0,255,0,50) },
+                                 {Settings::PuzzleColor::COLOR_A_DARK, QColor(170,20,20,120) },
+                                 {Settings::PuzzleColor::COLOR_B_DARK, QColor(20,20,170,120) },
+                                },
     m_puzzle(Settings::PuzzleType::SUDOKU_9X9)
 
 {
@@ -52,51 +59,19 @@ void MainWindow::change_board_type(Settings::PuzzleType new_puzzle_type)
         }
     }
 
-    color_miniboxes();
+    color_board();
 }
 
-void MainWindow::color_miniboxes()
+void MainWindow::color_board()
 {
-    QColor baseColor1(255,0,0,50);
-    QColor baseColor2(0,0,255,50);
-    bool start_row_with_colored_minibox = true;
-    for (int row = 0; row < m_puzzle.getRows(); row += m_puzzle.getMiniboxSize())
+    for (Region region : m_puzzle.getRegions())
     {
-        bool color_minibox = start_row_with_colored_minibox;
-        for (int column = 0; column < m_puzzle.getColumns(); column += m_puzzle.getMiniboxSize())
+        if (region.second != Settings::PuzzleColor::COLOR_NONE)
         {
-            QColor color = color_minibox ? baseColor1 : baseColor2;
-            for (int minibox_row = 0; minibox_row < m_puzzle.getMiniboxSize(); ++minibox_row)
+            QColor displayColor = PUZZLECOLOR_TO_DISPLAYCOLOR.at(region.second);
+            for (Point point : region.first)
             {
-                for (int minibox_column = 0; minibox_column < m_puzzle.getMiniboxSize(); ++minibox_column)
-                {
-                    ui->tableWidget->item(row + minibox_row, column + minibox_column)->setBackgroundColor(color);
-                }
-            }
-            color_minibox = !color_minibox;
-        }
-        start_row_with_colored_minibox = !start_row_with_colored_minibox;
-    }
-    // For the twin sudoku, recolor the middle region
-    if (m_puzzle.isTwinSudoku())
-    {
-        QColor middleRegionColor1(170,20,20,120);
-        QColor middleRegionColor2(20,20,170,120);
-        int first_overlap_column = m_puzzle.getRows() - m_puzzle.getMiniboxSize();
-        int first_nonoverlap_column = m_puzzle.getRows();
-        for (int row = 0; row < m_puzzle.getRows(); ++row)
-        {
-            for (int column = first_overlap_column; column < first_nonoverlap_column; ++column)
-            {
-                auto item = ui->tableWidget->item(row, column);
-                if (item->backgroundColor() == baseColor1)
-                {
-                    item->setBackgroundColor(middleRegionColor1);
-                }
-                else
-                {
-                    item->setBackgroundColor(middleRegionColor2);
-                }
+                ui->tableWidget->item(point.first, point.second)->setBackgroundColor(displayColor);
             }
         }
     }
