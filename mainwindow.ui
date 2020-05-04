@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Puzzle solver</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QTableWidget" name="tableWidget">
@@ -185,45 +185,6 @@
       <string>16</string>
      </property>
     </column>
-   </widget>
-   <widget class="QPushButton" name="solveButton">
-    <property name="geometry">
-     <rect>
-      <x>490</x>
-      <y>590</y>
-      <width>89</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Solve</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="setExampleButton">
-    <property name="geometry">
-     <rect>
-      <x>360</x>
-      <y>590</y>
-      <width>89</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Set Example</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="clearButton">
-    <property name="geometry">
-     <rect>
-      <x>240</x>
-      <y>590</y>
-      <width>89</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Clear</string>
-    </property>
    </widget>
    <widget class="QComboBox" name="comboBox">
     <property name="geometry">

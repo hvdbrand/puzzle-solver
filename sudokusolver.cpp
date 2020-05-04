@@ -162,7 +162,7 @@ bool get_sudoku_example(Type sudoku_type, Board& example_board)
     switch (sudoku_type) {
     case Type::S9X9:
         example_board.clear();
-        //                                                     1  2  3  4  5  6  7  8  9
+        //                                                    1  2  3  4  5  6  7  8  9
         example_board.emplace_back(std::initializer_list<int>{0, 2, 6, 0, 0, 0, 8, 1, 0}); // 1
         example_board.emplace_back(std::initializer_list<int>{3, 0, 0, 7, 0, 8, 0, 0, 6}); // 2
         example_board.emplace_back(std::initializer_list<int>{4, 0, 0, 0, 5, 0, 0, 0, 7}); // 3

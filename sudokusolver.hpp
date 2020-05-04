@@ -27,6 +27,7 @@ struct BoardSettings
     PointSet vertical_regions =   { {0,0}, {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,7}, {0,8} };
     RegionSet adjacent_regions;
     PointSet empty_points;
+    bool has_example = true;
 };
 
 BoardSettings get_board_settings(Type type);

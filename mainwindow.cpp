@@ -17,16 +17,42 @@ MainWindow::MainWindow(QWidget *parent) :
                                  {Settings::PuzzleColor::COLOR_C, QColor(0,255,0,50) },
                                  {Settings::PuzzleColor::COLOR_A_DARK, QColor(170,20,20,120) },
                                  {Settings::PuzzleColor::COLOR_B_DARK, QColor(20,20,170,120) },
-                                },
-    m_puzzle(Settings::PuzzleType::SUDOKU_9X9)
-
+                                }
 {
     ui->setupUi(this);
-    change_board_type(Settings::PuzzleType::SUDOKU_9X9);
+
+    auto fileMenu = menuBar()->addMenu(tr("&File"));
+
+    QAction *loadAction = new QAction(tr("&Load puzzle..."), this);
+    loadAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_L));
+    loadAction->setStatusTip(tr("Load a puzzle format..."));
+    connect(loadAction, &QAction::triggered, this, &MainWindow::load);
+    fileMenu->addAction(loadAction);
+
+    clearAction = new QAction(tr("&Clear puzzle"), this);
+    clearAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
+    clearAction->setStatusTip(tr("Clear the puzzle"));
+    connect(clearAction, &QAction::triggered, this, &MainWindow::clear);
+    menuBar()->addAction(clearAction);
+
+    exampleAction = new QAction(tr("Set &example puzzle"), this);
+    exampleAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+    exampleAction->setStatusTip(tr("Set example values for the puzzle"));
+    connect(exampleAction, &QAction::triggered, this, &MainWindow::set_example);
+    menuBar()->addAction(exampleAction);
+
+    solveAction = new QAction(tr("&Solve puzzle"), this);
+    solveAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    solveAction->setStatusTip(tr("Solve the puzzle"));
+    connect(solveAction, &QAction::triggered, this, &MainWindow::solve);
+    menuBar()->addAction(solveAction);
+
     for (auto puzzle_type : DROPDOWN_TO_PUZZLETYPE)
     {
         ui->comboBox->addItem(QString::fromStdString(puzzle_type.first));
     }
+
+    update_ui_for_new_puzzle();
 }
 
 MainWindow::~MainWindow()
@@ -34,37 +60,60 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::change_board_type(Settings::PuzzleType new_puzzle_type)
+void MainWindow::load()
 {
-    m_puzzle = Puzzle(new_puzzle_type);
-
-    ui->tableWidget->setRowCount(m_puzzle.getRows());
-    ui->tableWidget->setColumnCount(m_puzzle.getColumns());
-    ui->tableWidget->clearContents();
-    ui->tableWidget->clearFocus();
-    int width = 30;
-    for (int column = 0; column < m_puzzle.getColumns(); ++column)
+    m_puzzle = Puzzle::loadFromFile();
+    if (!m_puzzle)
     {
-        ui->tableWidget->setColumnWidth(column, width);
+        ui->output->append("No puzzle was loaded.\n");
     }
+    update_ui_for_new_puzzle();
+}
 
-    QFont font("Helvetica", 12);
-    ui->tableWidget->setFont(font);
-    for (int row = 0; row < m_puzzle.getRows(); ++ row)
+void MainWindow::update_ui_for_new_puzzle()
+{
+    if (m_puzzle)
     {
-        for (int column = 0; column < m_puzzle.getColumns(); ++column)
+        ui->tableWidget->setRowCount(m_puzzle->getRows());
+        ui->tableWidget->setColumnCount(m_puzzle->getColumns());
+        ui->tableWidget->clearContents();
+        ui->tableWidget->clearFocus();
+        int width = 30;
+        for (int column = 0; column < m_puzzle->getColumns(); ++column)
         {
-            ui->tableWidget->setItem(row, column, new QTableWidgetItem);
-            ui->tableWidget->item(row, column)->setTextAlignment(Qt::AlignCenter | Qt::AlignHCenter);
+            ui->tableWidget->setColumnWidth(column, width);
         }
-    }
 
-    color_board();
+        QFont font("Helvetica", 12);
+        ui->tableWidget->setFont(font);
+        for (int row = 0; row < m_puzzle->getRows(); ++ row)
+        {
+            for (int column = 0; column < m_puzzle->getColumns(); ++column)
+            {
+                ui->tableWidget->setItem(row, column, new QTableWidgetItem);
+                ui->tableWidget->item(row, column)->setTextAlignment(Qt::AlignCenter | Qt::AlignHCenter);
+            }
+        }
+
+        color_board();
+
+        ui->tableWidget->setVisible(true);
+        exampleAction->setEnabled(m_puzzle->has_example());
+        clearAction->setEnabled(true);
+        solveAction->setEnabled(true);
+    }
+    else
+    {
+        ui->tableWidget->setVisible(false);
+        exampleAction->setEnabled(false);
+        clearAction->setEnabled(false);
+        solveAction->setEnabled(false);
+    }
 }
 
 void MainWindow::color_board()
 {
-    for (Region region : m_puzzle.getRegions())
+    for (Region region : m_puzzle->getRegions())
     {
         if (region.second != Settings::PuzzleColor::COLOR_NONE)
         {
@@ -79,11 +128,11 @@ void MainWindow::color_board()
 
 Board MainWindow::parse_board()
 {
-    Board parsed(m_puzzle.getRows(), std::vector<int>(m_puzzle.getColumns()));
+    Board parsed(m_puzzle->getRows(), std::vector<int>(m_puzzle->getColumns()));
     QFont font("Helvetica", 14, QFont::Bold);
-    for (int row = 0; row < m_puzzle.getRows(); ++row)
+    for (int row = 0; row < m_puzzle->getRows(); ++row)
     {
-        for (int column = 0; column < m_puzzle.getColumns(); ++column)
+        for (int column = 0; column < m_puzzle->getColumns(); ++column)
         {
             QTableWidgetItem* item = ui->tableWidget->item(row, column);
             if (item != nullptr)
@@ -99,9 +148,9 @@ Board MainWindow::parse_board()
 void MainWindow::set_board(Board board_to_set)
 {
     QFont font("Helvetica", 12);
-    for (int row = 0; row < m_puzzle.getRows(); ++row)
+    for (int row = 0; row < m_puzzle->getRows(); ++row)
     {
-        for (int column = 0; column < m_puzzle.getColumns(); ++column)
+        for (int column = 0; column < m_puzzle->getColumns(); ++column)
         {
             QTableWidgetItem* item = ui->tableWidget->item(row, column);
             bool board_cell_is_not_empty = board_to_set[row][column] != 0;
@@ -115,67 +164,42 @@ void MainWindow::set_board(Board board_to_set)
     }
 }
 
-bool MainWindow::solve(Board &board_to_solve)
+void MainWindow::solve()
 {
-    bool solved = false;
+    auto board = parse_board();
     auto t1 = std::chrono::high_resolution_clock::now();
-    if (!m_puzzle.apply_board(board_to_solve)) {
+    if (!m_puzzle->apply_board(board)) {
         ui->output->append("There is a contradiction in the parsed board!");
-        solved = false;
     }
-    if (m_puzzle.solve()) {
+    if (m_puzzle->solve()) {
         std::chrono::duration<double, std::milli> time_taken = std::chrono::high_resolution_clock::now() - t1;
         std::ostringstream ss;
         ss << "Solution found in " << time_taken.count() << " ms";
         ui->output->append(QString::fromStdString(ss.str()));
-        board_to_solve = m_puzzle.get_solution();
-        solved = true;
+        ui->output->append("Solved!\n");
+        set_board(m_puzzle->get_solution());
     } else {
         std::ostringstream ss;
         ss << "Solving the provided parsed is not possible!";
         ui->output->append(QString::fromStdString(ss.str()));
-        solved = false;
+        ui->output->append("Not Solved!\n");
     }
-    return solved;
 }
 
-void MainWindow::on_clearButton_clicked()
+void MainWindow::clear()
 {
-    for (int row = 0; row < m_puzzle.getRows(); ++ row)
+    for (int row = 0; row < m_puzzle->getRows(); ++ row)
     {
-        for (int column = 0; column < m_puzzle.getColumns(); ++column)
+        for (int column = 0; column < m_puzzle->getColumns(); ++column)
         {
             ui->tableWidget->item(row, column)->setText("");
         }
     }
 }
 
-void MainWindow::on_solveButton_clicked()
+void MainWindow::set_example()
 {
-    auto parsed_board = parse_board();
-    if(solve(parsed_board))
-    {
-        ui->output->append("Solved!\n");
-        set_board(parsed_board);
-    }
-    else
-    {
-        ui->output->append("Not Solved!\n");
-    }
-}
-
-void MainWindow::on_setExampleButton_clicked()
-{
-    Board example_board;
-    bool found_example = m_puzzle.get_example(example_board);
-    if (found_example)
-    {
-        set_board(example_board);
-    }
-    else
-    {
-        ui->output->append("No example available for current board type.\n");
-    }
+    set_board(m_puzzle->get_example());
 }
 
 void MainWindow::on_comboBox_activated(const QString &board_type_str)
@@ -186,7 +210,8 @@ void MainWindow::on_comboBox_activated(const QString &board_type_str)
         if (board_type_str.startsWith(QString::fromStdString(puzzle_pair.first)))
         {
             ui->output->append(QString::fromStdString("Changing board to " + puzzle_pair.first + "\n"));
-            change_board_type(puzzle_pair.second);
+            m_puzzle = std::unique_ptr<Puzzle>(new Puzzle(puzzle_pair.second));
+            update_ui_for_new_puzzle();
             found_type = true;
             break;
         }

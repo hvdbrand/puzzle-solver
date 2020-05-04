@@ -1,9 +1,8 @@
 #pragma once
 
-#include "sudokusolver.hpp"
 #include "puzzle_types.hpp"
-#include <utility>
-#include <vector>
+#include "sudokusolver.hpp"
+#include <memory>
 
 namespace Settings {
 
@@ -17,11 +16,11 @@ enum class PuzzleType
 
 }
 
-using Board = std::vector<std::vector<int>>;
-
 class Puzzle
 {
 public:
+    static std::unique_ptr<Puzzle> loadFromFile();
+
     Puzzle(Settings::PuzzleType puzzle_type);
     virtual ~Puzzle();
 
@@ -34,8 +33,9 @@ public:
     // Returns true if the puzzle has a solution
     bool solve();
     Board get_solution() const;
-    // Returns a true if an example is set in the board variable
-    bool get_example(Board& board) const;
+
+    bool has_example() const;
+    Board get_example() const;
 
 private:
     Settings::PuzzleType m_puzzle_type;

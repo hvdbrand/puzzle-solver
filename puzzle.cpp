@@ -10,6 +10,13 @@ const std::map<Settings::PuzzleType, Settings::Sudoku::Type> SUDOKU_TYPES {
     };
 }
 
+std::unique_ptr<Puzzle> Puzzle::loadFromFile()
+{
+    std::unique_ptr<Puzzle> puzzle;
+    puzzle = std::unique_ptr<Puzzle>(new Puzzle(Settings::PuzzleType::SUDOKU_MIX_9X9_TWICE));
+    return puzzle;
+}
+
 Puzzle::Puzzle(Settings::PuzzleType puzzle_type)
     : m_puzzle_type(puzzle_type)
     , m_board_settings(Settings::Sudoku::get_board_settings(SUDOKU_TYPES.at(m_puzzle_type)))
@@ -64,13 +71,18 @@ Board Puzzle::get_solution() const
     return m_solver->get_solution();
 }
 
-bool Puzzle::get_example(Board& board) const
+bool Puzzle::has_example() const
 {
-    bool found_example = false;
+    return m_board_settings.has_example;
+}
+
+Board Puzzle::get_example() const
+{
+    Board board;
     auto it_sudoku_type = SUDOKU_TYPES.find(m_puzzle_type);
     if (it_sudoku_type != SUDOKU_TYPES.end())
     {
-        found_example = Settings::Sudoku::get_sudoku_example(it_sudoku_type->second, board);
+        Settings::Sudoku::get_sudoku_example(it_sudoku_type->second, board);
     }
-    return found_example;
+    return board;
 }

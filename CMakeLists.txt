@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 3.5)
-project (sudoku-SAT VERSION 0.1 LANGUAGES CXX)
+project (puzzle-solver VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(MiniSat 2.2 REQUIRED)
-find_package(Qt5 COMPONENTS Widgets Gui Core REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Gui Core Xml REQUIRED)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
