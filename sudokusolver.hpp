@@ -18,16 +18,17 @@ enum class Type
 
 struct BoardSettings
 {
-    int rows = 9;
-    int columns = 9;
-    int values = 9;
-    int min_value = 0;
-    int max_value = 9;
-    PointSet horizontal_regions = { {0,0}, {1,0}, {2,0}, {3,0}, {4,0}, {5,0}, {6,0}, {7,0}, {8,0} };
-    PointSet vertical_regions =   { {0,0}, {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,7}, {0,8} };
-    RegionSet adjacent_regions;
+    // TODO: Remove type when all examples are in board settings
+    Type type = Type::S9X9;
+    int rows;
+    int columns;
+    int values;
+    int min_value;
+    int max_value;
+    RegionSet regions;
     PointSet empty_points;
-    bool has_example = true;
+    bool has_example;
+    ExampleSet example;
 };
 
 BoardSettings get_board_settings(Type type);

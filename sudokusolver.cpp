@@ -16,11 +16,31 @@ namespace {
         }
         return points;
     }
+
+    PointSet getHorizontalRegion(int row, int column, int size)
+    {
+        PointSet points;
+        for (int cc = 0; cc < size; ++cc) {
+            points.emplace(row, column + cc);
+        }
+        return points;
+    }
+
+    PointSet getVerticalRegion(int row, int column, int size)
+    {
+        PointSet points;
+        for (int rr = 0; rr < size; ++rr) {
+            points.emplace(row + rr, column);
+        }
+        return points;
+    }
 }
 
 BoardSettings get_board_settings(Type type)
 {
     BoardSettings board_settings;
+    // TODO: Remove if all examples are part of the board settings
+    board_settings.type = type;
     if (type == Type::S9X9)
     {
         board_settings.rows = 9;
@@ -28,20 +48,49 @@ BoardSettings get_board_settings(Type type)
         board_settings.values = 9;
         board_settings.min_value = 0;
         board_settings.max_value = 9;
-        board_settings.horizontal_regions = { {0,0}, {1,0}, {2,0}, {3,0}, {4,0}, {5,0}, {6,0}, {7,0}, {8,0}};
-        board_settings.vertical_regions =   { {0,0}, {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,7}, {0,8}};
-        board_settings.adjacent_regions = { {getMinibox(0,0,3), PuzzleColor::COLOR_A},
-                                            {getMinibox(0,3,3), PuzzleColor::COLOR_B},
-                                            {getMinibox(0,6,3), PuzzleColor::COLOR_A},
+        board_settings.regions = { {getHorizontalRegion(0,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(1,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(2,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(3,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(4,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(5,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(6,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(7,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(8,0,9), PuzzleColor::NONE},
 
-                                            {getMinibox(3,0,3), PuzzleColor::COLOR_B},
-                                            {getMinibox(3,3,3), PuzzleColor::COLOR_A},
-                                            {getMinibox(3,6,3), PuzzleColor::COLOR_B},
+                                   {getVerticalRegion(0,0,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,1,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,2,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,3,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,4,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,5,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,6,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,7,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,8,9), PuzzleColor::NONE},
 
-                                            {getMinibox(6,0,3), PuzzleColor::COLOR_A},
-                                            {getMinibox(6,3,3), PuzzleColor::COLOR_B},
-                                            {getMinibox(6,6,3), PuzzleColor::COLOR_A},
-                                          };
+                                   {getMinibox(0,0,3), PuzzleColor::A},
+                                   {getMinibox(0,3,3), PuzzleColor::B},
+                                   {getMinibox(0,6,3), PuzzleColor::A},
+
+                                   {getMinibox(3,0,3), PuzzleColor::B},
+                                   {getMinibox(3,3,3), PuzzleColor::A},
+                                   {getMinibox(3,6,3), PuzzleColor::B},
+
+                                   {getMinibox(6,0,3), PuzzleColor::A},
+                                   {getMinibox(6,3,3), PuzzleColor::B},
+                                   {getMinibox(6,6,3), PuzzleColor::A},
+                                 };
+        board_settings.has_example = true;
+        board_settings.example = { {{0,1}, 2}, {{0,2}, 6}, {{0,6}, 8}, {{0,7}, 1},
+                                   {{1,0}, 3}, {{1,3}, 7}, {{1,5}, 8}, {{1,8}, 6},
+                                   {{2,0}, 4}, {{2,4}, 5}, {{2,8}, 7},
+                                   {{3,1}, 5}, {{3,3}, 1}, {{3,5}, 7}, {{3,7}, 9},
+                                   {{4,2}, 3}, {{4,3}, 9}, {{4,5}, 5}, {{4,6}, 1},
+                                   {{5,1}, 4}, {{5,3}, 3}, {{5,5}, 2}, {{5,7}, 5},
+                                   {{6,0}, 1}, {{6,4}, 3}, {{6,8}, 2},
+                                   {{7,0}, 5}, {{7,3}, 2}, {{7,5}, 4}, {{7,8}, 9},
+                                   {{8,1}, 3}, {{8,2}, 8}, {{8,6}, 4}, {{8,7}, 6},
+                                 };
     }
     else if (type == Type::S16X16)
     {
@@ -50,28 +99,61 @@ BoardSettings get_board_settings(Type type)
         board_settings.values = 16;
         board_settings.min_value = 0;
         board_settings.max_value = 16;
-        board_settings.horizontal_regions = { {0,0}, {1,0}, {2,0}, {3,0}, {4,0}, {5,0}, {6,0}, {7,0}, {8,0}, {9,0}, {10,0}, {11,0}, {12,0}, {13,0}, {14,0}, {15,0}};
-        board_settings.vertical_regions =   { {0,0}, {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,7}, {0,8}, {0,9}, {0,10}, {0,11}, {0,12}, {0,13}, {0,14}, {0,15}};
-        board_settings.adjacent_regions = { {getMinibox( 0, 0,4), PuzzleColor::COLOR_A},
-                                            {getMinibox( 0, 4,4), PuzzleColor::COLOR_B},
-                                            {getMinibox( 0, 8,4), PuzzleColor::COLOR_A},
-                                            {getMinibox( 0,12,4), PuzzleColor::COLOR_B},
+        board_settings.regions = { {getHorizontalRegion( 0,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 1,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 2,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 3,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 4,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 5,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 6,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 7,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 8,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 9,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion(10,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion(11,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion(12,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion(13,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion(14,0,16), PuzzleColor::NONE},
+                                   {getHorizontalRegion(15,0,16), PuzzleColor::NONE},
 
-                                            {getMinibox( 4, 0,4), PuzzleColor::COLOR_B},
-                                            {getMinibox( 4, 4,4), PuzzleColor::COLOR_A},
-                                            {getMinibox( 4, 8,4), PuzzleColor::COLOR_B},
-                                            {getMinibox( 4,12,4), PuzzleColor::COLOR_A},
+                                   {getVerticalRegion(0, 0,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 1,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 2,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 3,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 4,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 5,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 6,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 7,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 8,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 9,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,10,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,11,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,12,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,13,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,14,16), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,15,16), PuzzleColor::NONE},
 
-                                            {getMinibox( 8, 0,4), PuzzleColor::COLOR_A},
-                                            {getMinibox( 8, 4,4), PuzzleColor::COLOR_B},
-                                            {getMinibox( 8, 8,4), PuzzleColor::COLOR_A},
-                                            {getMinibox( 8,12,4), PuzzleColor::COLOR_B},
+                                   {getMinibox( 0, 0,4), PuzzleColor::A},
+                                   {getMinibox( 0, 4,4), PuzzleColor::B},
+                                   {getMinibox( 0, 8,4), PuzzleColor::A},
+                                   {getMinibox( 0,12,4), PuzzleColor::B},
 
-                                            {getMinibox(12, 0,4), PuzzleColor::COLOR_B},
-                                            {getMinibox(12, 4,4), PuzzleColor::COLOR_A},
-                                            {getMinibox(12, 8,4), PuzzleColor::COLOR_B},
-                                            {getMinibox(12,12,4), PuzzleColor::COLOR_A},
-                                          };
+                                   {getMinibox( 4, 0,4), PuzzleColor::B},
+                                   {getMinibox( 4, 4,4), PuzzleColor::A},
+                                   {getMinibox( 4, 8,4), PuzzleColor::B},
+                                   {getMinibox( 4,12,4), PuzzleColor::A},
+
+                                   {getMinibox( 8, 0,4), PuzzleColor::A},
+                                   {getMinibox( 8, 4,4), PuzzleColor::B},
+                                   {getMinibox( 8, 8,4), PuzzleColor::A},
+                                   {getMinibox( 8,12,4), PuzzleColor::B},
+
+                                   {getMinibox(12, 0,4), PuzzleColor::B},
+                                   {getMinibox(12, 4,4), PuzzleColor::A},
+                                   {getMinibox(12, 8,4), PuzzleColor::B},
+                                   {getMinibox(12,12,4), PuzzleColor::A},
+                                 };
+        board_settings.has_example = true;
     }
     else if (type == Type::T9X15)
     {
@@ -80,27 +162,61 @@ BoardSettings get_board_settings(Type type)
         board_settings.values = 9;
         board_settings.min_value = 0;
         board_settings.max_value = 9;
-        board_settings.horizontal_regions = { {0,0}, {1,0}, {2,0}, {3,0}, {4,0}, {5,0}, {6,0}, {7,0}, {8,0},
-                                              {0,6}, {1,6}, {2,6}, {3,6}, {4,6}, {5,6}, {6,6}, {7,6}, {8,6}};
-        board_settings.vertical_regions =   { {0,0}, {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,7}, {0,8}, {0,9}, {0,10}, {0,11}, {0,12}, {0,13}, {0,14}};
-        board_settings.adjacent_regions = { {getMinibox(0, 0,3), PuzzleColor::COLOR_A},
-                                            {getMinibox(0, 3,3), PuzzleColor::COLOR_B},
-                                            {getMinibox(0, 6,3), PuzzleColor::COLOR_A_DARK},
-                                            {getMinibox(0, 9,3), PuzzleColor::COLOR_B},
-                                            {getMinibox(0,12,3), PuzzleColor::COLOR_A},
+        board_settings.regions = { {getHorizontalRegion(0,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(1,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(2,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(3,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(4,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(5,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(6,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(7,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(8,0,9), PuzzleColor::NONE},
 
-                                            {getMinibox(3, 0,3), PuzzleColor::COLOR_B},
-                                            {getMinibox(3, 3,3), PuzzleColor::COLOR_A},
-                                            {getMinibox(3, 6,3), PuzzleColor::COLOR_B_DARK},
-                                            {getMinibox(3, 9,3), PuzzleColor::COLOR_A},
-                                            {getMinibox(3,12,3), PuzzleColor::COLOR_B},
+                                   {getHorizontalRegion(0,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(1,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(2,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(3,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(4,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(5,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(6,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(7,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(8,6,9), PuzzleColor::NONE},
 
-                                            {getMinibox(6, 0,3), PuzzleColor::COLOR_A},
-                                            {getMinibox(6, 3,3), PuzzleColor::COLOR_B},
-                                            {getMinibox(6, 6,3), PuzzleColor::COLOR_A_DARK},
-                                            {getMinibox(6, 9,3), PuzzleColor::COLOR_B},
-                                            {getMinibox(6,12,3), PuzzleColor::COLOR_A},
-                                          };
+                                   {getVerticalRegion(0, 0,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 1,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 2,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 3,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 4,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 5,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 6,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 7,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 8,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0, 9,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,10,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,11,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,12,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,13,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,14,9), PuzzleColor::NONE},
+
+                                   {getMinibox(0, 0,3), PuzzleColor::A},
+                                   {getMinibox(0, 3,3), PuzzleColor::B},
+                                   {getMinibox(0, 6,3), PuzzleColor::A_DARK},
+                                   {getMinibox(0, 9,3), PuzzleColor::B},
+                                   {getMinibox(0,12,3), PuzzleColor::A},
+
+                                   {getMinibox(3, 0,3), PuzzleColor::B},
+                                   {getMinibox(3, 3,3), PuzzleColor::A},
+                                   {getMinibox(3, 6,3), PuzzleColor::B_DARK},
+                                   {getMinibox(3, 9,3), PuzzleColor::A},
+                                   {getMinibox(3,12,3), PuzzleColor::B},
+
+                                   {getMinibox(6, 0,3), PuzzleColor::A},
+                                   {getMinibox(6, 3,3), PuzzleColor::B},
+                                   {getMinibox(6, 6,3), PuzzleColor::A_DARK},
+                                   {getMinibox(6, 9,3), PuzzleColor::B},
+                                   {getMinibox(6,12,3), PuzzleColor::A},
+                                 };
+        board_settings.has_example = true;
     }
     else if (type == Type::M9X9_TWICE_COUPLED)
     {
@@ -109,36 +225,70 @@ BoardSettings get_board_settings(Type type)
         board_settings.values = 9;
         board_settings.min_value = 0;
         board_settings.max_value = 9;
-        board_settings.horizontal_regions = { {0,0}, {1,0}, {2,0}, {3,0}, {4,0}, {5,0}, {6,0}, {7,0}, {8,0},
-                                              {6,6}, {7,6}, {8,6}, {9,6}, {10,6}, {11,6}, {12,6}, {13,6}, {14,6},
-                                            };
-        board_settings.vertical_regions =   { {0,0}, {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,7}, {0,8},
-                                              {6,6}, {6,7}, {6,8}, {6,9}, {6,10}, {6,11}, {6,12}, {6,13}, {6,14},
-                                            };
-        board_settings.adjacent_regions = { {getMinibox( 6, 6,3), PuzzleColor::COLOR_A_DARK},
-                                            {getMinibox( 6, 9,3), PuzzleColor::COLOR_B},
-                                            {getMinibox( 6,12,3), PuzzleColor::COLOR_A},
+        board_settings.regions = { {getHorizontalRegion(0,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(1,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(2,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(3,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(4,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(5,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(6,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(7,0,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(8,0,9), PuzzleColor::NONE},
 
-                                            {getMinibox( 9, 6,3), PuzzleColor::COLOR_B},
-                                            {getMinibox( 9, 9,3), PuzzleColor::COLOR_A},
-                                            {getMinibox( 9,12,3), PuzzleColor::COLOR_B},
+                                   {getHorizontalRegion( 6,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 7,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 8,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion( 9,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(10,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(11,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(12,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(13,6,9), PuzzleColor::NONE},
+                                   {getHorizontalRegion(14,6,9), PuzzleColor::NONE},
 
-                                            {getMinibox(12, 6,3), PuzzleColor::COLOR_A},
-                                            {getMinibox(12, 9,3), PuzzleColor::COLOR_B},
-                                            {getMinibox(12,12,3), PuzzleColor::COLOR_A},
+                                   {getVerticalRegion(0,0,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,1,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,2,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,3,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,4,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,5,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,6,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,7,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(0,8,9), PuzzleColor::NONE},
 
-                                            { {{6,6}, {7,7}, {8,8}, {9,9}, {10,10}, {11,11}, {12,12}, {13,13}, {14,14}}, PuzzleColor::COLOR_NONE},
-                                            { {{14,6}, {13,7}, {12,8}, {11,9}, {10,10}, {9,11}, {8,12}, {7,13}, {6,14}}, PuzzleColor::COLOR_NONE},
+                                   {getVerticalRegion(6, 6,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(6, 7,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(6, 8,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(6, 9,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(6,10,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(6,11,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(6,12,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(6,13,9), PuzzleColor::NONE},
+                                   {getVerticalRegion(6,14,9), PuzzleColor::NONE},
 
-                                            { {{0,0}, {0,1}, {0,2}, {1,0}, {1,1}, {1,2}, {1,3}, {2,2}, {2,3}}, PuzzleColor::COLOR_A},
-                                            { {{0,3}, {0,4}, {0,5}, {0,6}, {0,7}, {1,4}, {1,5}, {2,4}, {2,5}}, PuzzleColor::COLOR_C},
-                                            { {{0,8}, {1,6}, {1,7}, {1,8}, {2,6}, {2,7}, {2,8}, {3,7}, {3,8}}, PuzzleColor::COLOR_B},
-                                            { {{2,0}, {2,1}, {3,0}, {3,1}, {3,2}, {3,3}, {4,0}, {4,1}, {4,2}}, PuzzleColor::COLOR_B},
-                                            { {{3,4}, {3,5}, {3,6}, {4,3}, {4,4}, {4,5}, {5,2}, {5,3}, {5,4}}, PuzzleColor::COLOR_A},
-                                            { {{4,6}, {4,7}, {4,8}, {5,5}, {5,6}, {5,7}, {5,8}, {6,5}, {7,5}}, PuzzleColor::COLOR_C},
-                                            { {{5,0}, {5,1}, {6,0}, {6,1}, {6,2}, {7,0}, {7,1}, {7,2}, {8,0}}, PuzzleColor::COLOR_C},
-                                            { {{6,3}, {6,4}, {7,3}, {7,4}, {8,1}, {8,2}, {8,3}, {8,4}, {8,5}}, PuzzleColor::COLOR_B},
-                                          };
+                                   {getMinibox( 6, 6,3), PuzzleColor::A_DARK},
+                                   {getMinibox( 6, 9,3), PuzzleColor::B},
+                                   {getMinibox( 6,12,3), PuzzleColor::A},
+
+                                   {getMinibox( 9, 6,3), PuzzleColor::B},
+                                   {getMinibox( 9, 9,3), PuzzleColor::A},
+                                   {getMinibox( 9,12,3), PuzzleColor::B},
+
+                                   {getMinibox(12, 6,3), PuzzleColor::A},
+                                   {getMinibox(12, 9,3), PuzzleColor::B},
+                                   {getMinibox(12,12,3), PuzzleColor::A},
+
+                                   { {{6,6}, {7,7}, {8,8}, {9,9}, {10,10}, {11,11}, {12,12}, {13,13}, {14,14}}, PuzzleColor::NONE},
+                                   { {{14,6}, {13,7}, {12,8}, {11,9}, {10,10}, {9,11}, {8,12}, {7,13}, {6,14}}, PuzzleColor::NONE},
+
+                                   { {{0,0}, {0,1}, {0,2}, {1,0}, {1,1}, {1,2}, {1,3}, {2,2}, {2,3}}, PuzzleColor::A},
+                                   { {{0,3}, {0,4}, {0,5}, {0,6}, {0,7}, {1,4}, {1,5}, {2,4}, {2,5}}, PuzzleColor::C},
+                                   { {{0,8}, {1,6}, {1,7}, {1,8}, {2,6}, {2,7}, {2,8}, {3,7}, {3,8}}, PuzzleColor::B},
+                                   { {{2,0}, {2,1}, {3,0}, {3,1}, {3,2}, {3,3}, {4,0}, {4,1}, {4,2}}, PuzzleColor::B},
+                                   { {{3,4}, {3,5}, {3,6}, {4,3}, {4,4}, {4,5}, {5,2}, {5,3}, {5,4}}, PuzzleColor::A},
+                                   { {{4,6}, {4,7}, {4,8}, {5,5}, {5,6}, {5,7}, {5,8}, {6,5}, {7,5}}, PuzzleColor::C},
+                                   { {{5,0}, {5,1}, {6,0}, {6,1}, {6,2}, {7,0}, {7,1}, {7,2}, {8,0}}, PuzzleColor::C},
+                                   { {{6,3}, {6,4}, {7,3}, {7,4}, {8,1}, {8,2}, {8,3}, {8,4}, {8,5}}, PuzzleColor::B},
+                                 };
         board_settings.empty_points = {{ 9,0}, { 9,1}, { 9,2}, { 9,3}, { 9,4}, { 9,5},
                                        {10,0}, {10,1}, {10,2}, {10,3}, {10,4}, {10,5},
                                        {11,0}, {11,1}, {11,2}, {11,3}, {11,4}, {11,5},
@@ -152,6 +302,7 @@ BoardSettings get_board_settings(Type type)
                                        {4,9}, {4,10}, {4,11}, {4,12}, {4,13}, {4,14},
                                        {5,9}, {5,10}, {5,11}, {5,12}, {5,13}, {5,14},
                                       };
+        board_settings.has_example = true;
     }
     return board_settings;
 }
@@ -160,72 +311,58 @@ bool get_sudoku_example(Type sudoku_type, Board& example_board)
 {
     bool found_example = false;
     switch (sudoku_type) {
-    case Type::S9X9:
-        example_board.clear();
-        //                                                    1  2  3  4  5  6  7  8  9
-        example_board.emplace_back(std::initializer_list<int>{0, 2, 6, 0, 0, 0, 8, 1, 0}); // 1
-        example_board.emplace_back(std::initializer_list<int>{3, 0, 0, 7, 0, 8, 0, 0, 6}); // 2
-        example_board.emplace_back(std::initializer_list<int>{4, 0, 0, 0, 5, 0, 0, 0, 7}); // 3
-        example_board.emplace_back(std::initializer_list<int>{0, 5, 0, 1, 0, 7, 0, 9, 0}); // 4
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 3, 9, 0, 5, 1, 0, 0}); // 5
-        example_board.emplace_back(std::initializer_list<int>{0, 4, 0, 3, 0, 2, 0, 5, 0}); // 6
-        example_board.emplace_back(std::initializer_list<int>{1, 0, 0, 0, 3, 0, 0, 0, 2}); // 7
-        example_board.emplace_back(std::initializer_list<int>{5, 0, 0, 2, 0, 4, 0, 0, 9}); // 8
-        example_board.emplace_back(std::initializer_list<int>{0, 3, 8, 0, 0, 0, 4, 6, 0}); // 9
-        found_example = true;
-        break;
     case Type::S16X16:
         example_board.clear();
-        //                                                     1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
-        example_board.emplace_back(std::initializer_list<int>{ 0,  3, 11,  0,  0,  0, 10, 16,  0,  0,  0,  0,  0,  5,  6,  4}); //  1
-        example_board.emplace_back(std::initializer_list<int>{ 0,  0,  0,  0,  3,  0,  0,  0,  0, 11,  6,  0, 14,  0, 15,  1}); //  2
-        example_board.emplace_back(std::initializer_list<int>{ 0,  0,  1,  0,  7, 15,  0,  0,  3, 14,  0, 16, 12,  0,  0,  0}); //  3
-        example_board.emplace_back(std::initializer_list<int>{ 0, 14,  0,  0,  8, 12,  6,  0,  0,  0, 13,  0, 16,  9,  0,  0}); //  4
-        example_board.emplace_back(std::initializer_list<int>{ 0,  4,  0,  0,  0,  0,  8, 12,  0,  0,  0,  7,  0,  3, 14, 15}); //  5
-        example_board.emplace_back(std::initializer_list<int>{10,  0,  0, 14, 11,  3,  0,  0,  9,  8,  0,  0,  0,  0,  7,  0}); //  6
-        example_board.emplace_back(std::initializer_list<int>{ 3,  2, 12,  7, 16,  9,  0,  0,  0,  6,  0,  0,  0,  0,  0,  0}); //  7
-        example_board.emplace_back(std::initializer_list<int>{13,  0,  0,  0, 14,  0,  7,  0,  0,  2,  0,  0,  0,  6,  0,  0}); //  8
-        example_board.emplace_back(std::initializer_list<int>{ 0,  0,  8,  0,  0,  0, 14,  0,  0,  7,  0,  4,  0,  0,  0, 13}); //  9
-        example_board.emplace_back(std::initializer_list<int>{ 0,  0,  0,  0,  0,  0, 16,  0,  0,  0, 15,  8,  4, 11,  3,  2}); // 10
-        example_board.emplace_back(std::initializer_list<int>{ 0, 16,  0,  0,  0,  0, 13,  8,  0,  0,  5, 14, 15,  0,  0,  7}); // 11
-        example_board.emplace_back(std::initializer_list<int>{12,  9,  3,  0,  4,  0,  0,  0,  2, 13,  0,  0,  0,  0,  5,  0}); // 12
-        example_board.emplace_back(std::initializer_list<int>{ 0,  0, 13, 10,  0,  8,  0,  0,  0, 12,  7, 11,  0,  0, 16,  0}); // 13
-        example_board.emplace_back(std::initializer_list<int>{ 0,  0,  0,  1,  9,  0,  5, 11,  0,  0, 14,  6,  0,  7,  0,  0}); // 14
-        example_board.emplace_back(std::initializer_list<int>{ 5,  7,  0,  8,  0,  4, 12,  0,  0,  0,  0,  2,  0,  0,  0,  0}); // 15
-        example_board.emplace_back(std::initializer_list<int>{ 4, 11, 14,  0,  0,  0,  0,  0,  8, 15,  0,  0,  0, 13, 10,  0}); // 16
+        //                                                     0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
+        example_board.emplace_back(std::initializer_list<int>{ 0,  3, 11,  0,  0,  0, 10, 16,  0,  0,  0,  0,  0,  5,  6,  4}); //  0
+        example_board.emplace_back(std::initializer_list<int>{ 0,  0,  0,  0,  3,  0,  0,  0,  0, 11,  6,  0, 14,  0, 15,  1}); //  1
+        example_board.emplace_back(std::initializer_list<int>{ 0,  0,  1,  0,  7, 15,  0,  0,  3, 14,  0, 16, 12,  0,  0,  0}); //  2
+        example_board.emplace_back(std::initializer_list<int>{ 0, 14,  0,  0,  8, 12,  6,  0,  0,  0, 13,  0, 16,  9,  0,  0}); //  3
+        example_board.emplace_back(std::initializer_list<int>{ 0,  4,  0,  0,  0,  0,  8, 12,  0,  0,  0,  7,  0,  3, 14, 15}); //  4
+        example_board.emplace_back(std::initializer_list<int>{10,  0,  0, 14, 11,  3,  0,  0,  9,  8,  0,  0,  0,  0,  7,  0}); //  5
+        example_board.emplace_back(std::initializer_list<int>{ 3,  2, 12,  7, 16,  9,  0,  0,  0,  6,  0,  0,  0,  0,  0,  0}); //  6
+        example_board.emplace_back(std::initializer_list<int>{13,  0,  0,  0, 14,  0,  7,  0,  0,  2,  0,  0,  0,  6,  0,  0}); //  7
+        example_board.emplace_back(std::initializer_list<int>{ 0,  0,  8,  0,  0,  0, 14,  0,  0,  7,  0,  4,  0,  0,  0, 13}); //  8
+        example_board.emplace_back(std::initializer_list<int>{ 0,  0,  0,  0,  0,  0, 16,  0,  0,  0, 15,  8,  4, 11,  3,  2}); //  9
+        example_board.emplace_back(std::initializer_list<int>{ 0, 16,  0,  0,  0,  0, 13,  8,  0,  0,  5, 14, 15,  0,  0,  7}); // 10
+        example_board.emplace_back(std::initializer_list<int>{12,  9,  3,  0,  4,  0,  0,  0,  2, 13,  0,  0,  0,  0,  5,  0}); // 11
+        example_board.emplace_back(std::initializer_list<int>{ 0,  0, 13, 10,  0,  8,  0,  0,  0, 12,  7, 11,  0,  0, 16,  0}); // 12
+        example_board.emplace_back(std::initializer_list<int>{ 0,  0,  0,  1,  9,  0,  5, 11,  0,  0, 14,  6,  0,  7,  0,  0}); // 13
+        example_board.emplace_back(std::initializer_list<int>{ 5,  7,  0,  8,  0,  4, 12,  0,  0,  0,  0,  2,  0,  0,  0,  0}); // 14
+        example_board.emplace_back(std::initializer_list<int>{ 4, 11, 14,  0,  0,  0,  0,  0,  8, 15,  0,  0,  0, 13, 10,  0}); // 15
         found_example = true;
         break;
     case Type::T9X15:
         example_board.clear();
-        //                                                    1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 2, 0, 0, 0, 0, 7, 2, 0, 0, 4, 0, 5}); // 1
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 3, 0, 0, 6, 0, 5, 0, 0, 9, 2, 3, 0}); // 2
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 1, 0, 8, 0, 0, 0, 8, 0, 0, 1, 0, 0}); // 3
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 2, 0}); // 4
-        example_board.emplace_back(std::initializer_list<int>{6, 1, 7, 8, 0, 0, 0, 0, 0, 0, 0, 5, 7, 1, 6}); // 5
-        example_board.emplace_back(std::initializer_list<int>{0, 9, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0}); // 6
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 6, 0, 0, 2, 0, 0, 0, 4, 0, 8, 0, 0, 0}); // 7
-        example_board.emplace_back(std::initializer_list<int>{0, 8, 9, 7, 0, 0, 3, 0, 6, 0, 0, 7, 0, 0, 0}); // 8
-        example_board.emplace_back(std::initializer_list<int>{1, 0, 2, 0, 0, 3, 8, 0, 0, 0, 0, 2, 0, 0, 0}); // 9
+        //                                                    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 2, 0, 0, 0, 0, 7, 2, 0, 0, 4, 0, 5}); // 0
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 3, 0, 0, 6, 0, 5, 0, 0, 9, 2, 3, 0}); // 1
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 1, 0, 8, 0, 0, 0, 8, 0, 0, 1, 0, 0}); // 2
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 2, 0}); // 3
+        example_board.emplace_back(std::initializer_list<int>{6, 1, 7, 8, 0, 0, 0, 0, 0, 0, 0, 5, 7, 1, 6}); // 4
+        example_board.emplace_back(std::initializer_list<int>{0, 9, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0}); // 5
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 6, 0, 0, 2, 0, 0, 0, 4, 0, 8, 0, 0, 0}); // 6
+        example_board.emplace_back(std::initializer_list<int>{0, 8, 9, 7, 0, 0, 3, 0, 6, 0, 0, 7, 0, 0, 0}); // 7
+        example_board.emplace_back(std::initializer_list<int>{1, 0, 2, 0, 0, 3, 8, 0, 0, 0, 0, 2, 0, 0, 0}); // 8
         found_example = true;
         break;
     case Type::M9X9_TWICE_COUPLED:
         example_board.clear();
-        //                                                    1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0}); // 1
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 9, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0}); // 2
-        example_board.emplace_back(std::initializer_list<int>{7, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0}); // 3
-        example_board.emplace_back(std::initializer_list<int>{4, 0, 0, 0, 6, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0}); // 4
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0}); // 5
-        example_board.emplace_back(std::initializer_list<int>{6, 0, 0, 0, 1, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0}); // 6
-        example_board.emplace_back(std::initializer_list<int>{1, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0}); // 7
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 7, 0, 6, 0, 0, 0, 7, 0, 3, 0, 0, 0}); // 8
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 4}); // 9
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 1, 0, 0, 0, 6}); // 10
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0}); // 11
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 9, 0, 0, 0, 3}); // 12
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 5, 0, 0, 0, 7}); // 13
-        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 9, 0, 0, 0}); // 14
+        //                                                    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0}); // 0
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 9, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0}); // 1
+        example_board.emplace_back(std::initializer_list<int>{7, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0}); // 2
+        example_board.emplace_back(std::initializer_list<int>{4, 0, 0, 0, 6, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0}); // 3
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0}); // 4
+        example_board.emplace_back(std::initializer_list<int>{6, 0, 0, 0, 1, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0}); // 5
+        example_board.emplace_back(std::initializer_list<int>{1, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0}); // 6
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 7, 0, 6, 0, 0, 0, 7, 0, 3, 0, 0, 0}); // 7
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 4}); // 8
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 1, 0, 0, 0, 6}); // 9
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0}); // 10
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 9, 0, 0, 0, 3}); // 11
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 5, 0, 0, 0, 7}); // 12
+        example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 9, 0, 0, 0}); // 13
         example_board.emplace_back(std::initializer_list<int>{0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 6, 0, 0}); // 14
         found_example = true;
         break;
@@ -346,36 +483,8 @@ void SudokuSolver::one_square_one_value() {
 }
 
 void SudokuSolver::non_duplicated_values() {
-    // Allow every value only once in a horizontal region
-    for(auto region_start : m_board_settings.horizontal_regions)
-    {
-        auto start_row = region_start.first;
-        auto start_column = region_start.second;
-        for (int value = 0; value < m_board_settings.values; ++value) {
-            Minisat::vec<Minisat::Lit> literals;
-            for (int column = 0; column < m_board_settings.values; ++column) {
-                literals.push(Minisat::mkLit(toVar(start_row, start_column + column, value)));
-            }
-            exactly_one_true(literals);
-        }
-    }
-
-    // Allow every value only once in a vertical region
-    for(auto region_start : m_board_settings.vertical_regions)
-    {
-        auto start_row = region_start.first;
-        auto start_column = region_start.second;
-        for (int value = 0; value < m_board_settings.values; ++value) {
-            Minisat::vec<Minisat::Lit> literals;
-            for (int row = 0; row < m_board_settings.values; ++row) {
-                literals.push(Minisat::mkLit(toVar(start_row + row, start_column, value)));
-            }
-            exactly_one_true(literals);
-        }
-    }
-
     // Allow every value only once in an adjacent region
-    for (auto region : m_board_settings.adjacent_regions)
+    for (auto region : m_board_settings.regions)
     {
         for (int value = 0; value < m_board_settings.values; ++value) {
             Minisat::vec<Minisat::Lit> literals;

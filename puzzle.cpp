@@ -10,16 +10,14 @@ const std::map<Settings::PuzzleType, Settings::Sudoku::Type> SUDOKU_TYPES {
     };
 }
 
-std::unique_ptr<Puzzle> Puzzle::loadFromFile()
+Puzzle::Puzzle(Settings::PuzzleType predefined_puzzle_type)
+    : m_board_settings(Settings::Sudoku::get_board_settings(SUDOKU_TYPES.at(predefined_puzzle_type)))
+    , m_solver(NULL)
 {
-    std::unique_ptr<Puzzle> puzzle;
-    puzzle = std::unique_ptr<Puzzle>(new Puzzle(Settings::PuzzleType::SUDOKU_MIX_9X9_TWICE));
-    return puzzle;
 }
 
-Puzzle::Puzzle(Settings::PuzzleType puzzle_type)
-    : m_puzzle_type(puzzle_type)
-    , m_board_settings(Settings::Sudoku::get_board_settings(SUDOKU_TYPES.at(m_puzzle_type)))
+Puzzle::Puzzle(const Settings::Sudoku::BoardSettings& board_settings)
+    : m_board_settings(board_settings)
     , m_solver(NULL)
 {
 }
@@ -44,7 +42,7 @@ int Puzzle::getColumns() const
 
 RegionSet Puzzle::getRegions() const
 {
-    return m_board_settings.adjacent_regions;
+    return m_board_settings.regions;
 }
 
 bool Puzzle::apply_board(const Board& board)
@@ -67,7 +65,7 @@ bool Puzzle::solve()
 Board Puzzle::get_solution() const
 {
     if (m_solver == NULL)
-        return Board(m_board_settings.rows, std::vector<int>(m_board_settings.columns));
+        return Board(m_board_settings.rows, std::vector<Value>(m_board_settings.columns));
     return m_solver->get_solution();
 }
 
@@ -78,11 +76,16 @@ bool Puzzle::has_example() const
 
 Board Puzzle::get_example() const
 {
-    Board board;
-    auto it_sudoku_type = SUDOKU_TYPES.find(m_puzzle_type);
-    if (it_sudoku_type != SUDOKU_TYPES.end())
+    Board board(m_board_settings.rows, std::vector<Value>(m_board_settings.columns));
+    if (m_board_settings.example.size() > 0)
     {
-        Settings::Sudoku::get_sudoku_example(it_sudoku_type->second, board);
+        for (auto examplePoint : m_board_settings.example)
+        {
+            board[examplePoint.first.first][examplePoint.first.second] = examplePoint.second;
+        }
+        return board;
     }
+    // TODO: Move separate examples from get_sudoku_example to board_settings
+    Settings::Sudoku::get_sudoku_example(m_board_settings.type, board);
     return board;
 }

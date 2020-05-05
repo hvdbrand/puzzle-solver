@@ -186,23 +186,13 @@
      </property>
     </column>
    </widget>
-   <widget class="QComboBox" name="comboBox">
-    <property name="geometry">
-     <rect>
-      <x>620</x>
-      <y>590</y>
-      <width>171</width>
-      <height>25</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QTextBrowser" name="output">
     <property name="geometry">
      <rect>
       <x>20</x>
       <y>500</y>
       <width>921</width>
-      <height>81</height>
+      <height>121</height>
      </rect>
     </property>
    </widget>

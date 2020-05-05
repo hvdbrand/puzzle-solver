@@ -19,12 +19,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-private slots:
-
-    void on_comboBox_activated(const QString &m_board_type);
-
 private:
     void load();
+    void load_predefined(const std::string& puzzle_name, Settings::PuzzleType puzzle_type);
     void update_ui_for_new_puzzle();
     void color_board();
     Board parse_board();
@@ -39,7 +36,7 @@ private:
     QAction* exampleAction;
     QAction* solveAction;
 
-    const std::vector<std::pair<std::string, Settings::PuzzleType>> DROPDOWN_TO_PUZZLETYPE;
+    const std::vector<std::pair<std::string, Settings::PuzzleType>> PREDEFINED_PUZZLES;
     const std::map<Settings::PuzzleColor, QColor> PUZZLECOLOR_TO_DISPLAYCOLOR;
 
     std::unique_ptr<Puzzle> m_puzzle;

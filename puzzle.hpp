@@ -19,9 +19,8 @@ enum class PuzzleType
 class Puzzle
 {
 public:
-    static std::unique_ptr<Puzzle> loadFromFile();
-
-    Puzzle(Settings::PuzzleType puzzle_type);
+    Puzzle(Settings::PuzzleType predefined_puzzle_type);
+    Puzzle(const Settings::Sudoku::BoardSettings& board_settings);
     virtual ~Puzzle();
 
     int getRows() const;
@@ -38,7 +37,6 @@ public:
     Board get_example() const;
 
 private:
-    Settings::PuzzleType m_puzzle_type;
     Settings::Sudoku::BoardSettings m_board_settings;
 
     SudokuSolver* m_solver;

@@ -11,6 +11,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 add_library(puzzle-solver
     puzzle.cpp
     puzzle.hpp
+    puzzle_loader.cpp
+    puzzle_loader.hpp
     puzzle_types.hpp
     sudokusolver.cpp
     sudokusolver.hpp
@@ -18,6 +20,8 @@ add_library(puzzle-solver
 
 target_link_libraries(puzzle-solver
     MiniSat::libminisat
+    Qt5::Core
+    Qt5::Xml
 )
 
 add_executable(sudoku-cli
