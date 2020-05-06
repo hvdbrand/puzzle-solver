@@ -3,6 +3,9 @@
 #include "puzzle_loader.hpp"
 #include "puzzle_saver.hpp"
 
+#include <QFileDialog>
+#include <QMessageBox>
+
 #include <chrono>
 #include <iostream>
 #include <sstream>
@@ -82,12 +85,64 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::save()
+{
+    QFileDialog file_dialog(this, tr("Save Puzzle File"));
+    file_dialog.setNameFilter("Puzzle files (*.xpuz *.xml)");
+    file_dialog.setAcceptMode(QFileDialog::AcceptSave);
+    file_dialog.setDirectory(QDir::homePath() + "/.puzzlesolver");
+    file_dialog.setDefaultSuffix(".xpuz");
+    file_dialog.setModal(true);
+    QString file_name;
+    if (file_dialog.exec() == QDialog::Accepted)
+    {
+        file_name = file_dialog.selectedFiles().first();
+    }
+
+    if (file_name.isEmpty())
+        return;
+    if (!file_name.endsWith(".xpuz"))
+    {
+        file_name += ".xpuz";
+    }
+
+    QFile file(file_name);
+    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("Puzzle file"),
+                             tr("Cannot write file %1:\n%2.")
+                             .arg(QDir::toNativeSeparators(file_name),
+                                  file.errorString()));
+        return;
+    }
+
+    Board board = parse_board();
+    auto board_settings = m_puzzle->get_board_settings();
+    PuzzleSaver::save_to_file(board_settings, board, file);
+
+    ui->output->append(tr("Puzzle was saved to file %1.\n").arg(QDir::toNativeSeparators(file_name)));
+}
+
 void MainWindow::load()
 {
-    m_puzzle = PuzzleLoader::load_from_file();
+    QString file_name = QFileDialog::getOpenFileName(this, tr("Load Puzzle File"),
+                        QDir::homePath() + "/.puzzlesolver",
+                       tr("Puzzle files (*.xpuz *.xml)"));
+    if (file_name.isEmpty())
+        return;
+
+    QFile file(file_name);
+    if (!file.open(QFile::ReadOnly | QFile::Text)) {
+        QMessageBox::warning(this, tr("Puzzle file"),
+                             tr("Cannot open file %1:\n%2.")
+                             .arg(QDir::toNativeSeparators(file_name),
+                                  file.errorString()));
+        return;
+    }
+
+    m_puzzle = PuzzleLoader::load_from_file(file);
     if (m_puzzle)
     {
-        ui->output->append("Puzzle was loaded from file.\n");
+        ui->output->append(tr("Puzzle was loaded from file %1.\n").arg(QDir::toNativeSeparators(file_name)));
     }
     else
     {
@@ -96,15 +151,6 @@ void MainWindow::load()
     update_ui_for_new_puzzle();
 }
 
-void MainWindow::save()
-{
-    Board board = parse_board();
-    auto board_settings = m_puzzle->get_board_settings();
-    if (!PuzzleSaver::save_to_file(board_settings, board))
-    {
-        std::cout << "Saving failed" << std::endl;
-    }
-}
 
 void MainWindow::load_predefined(const std::string& puzzle_name, Settings::PuzzleType puzzle_type)
 {

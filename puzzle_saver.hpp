@@ -2,7 +2,9 @@
 
 #include "sudokusolver.hpp"
 
+#include <QFile>
+
 namespace PuzzleSaver {
-    bool save_to_file(const Settings::Sudoku::BoardSettings& board_settings, const Board& example_board);
+    void save_to_file(const Settings::Sudoku::BoardSettings& board_settings, const Board& example_board, QFile &file);
 
 }

@@ -215,15 +215,9 @@ namespace {
     }
 }
 
-std::unique_ptr<Puzzle> load_from_file()
+std::unique_ptr<Puzzle> load_from_file(QFile& file)
 {
     std::unique_ptr<Puzzle> puzzle;
-    QString file_name("/home/hugo/.puzzlesolver/sudoku_mix_362.xpuz");
-    QFile file(file_name);
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        return puzzle;
-    }
-
     Settings::Sudoku::BoardSettings board_settings;
     if (load_settings_from_file(&file, board_settings))
     {

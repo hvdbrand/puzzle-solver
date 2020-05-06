@@ -20,8 +20,8 @@ public:
     ~MainWindow();
 
 private:
-    void load();
     void save();
+    void load();    
     void load_predefined(const std::string& puzzle_name, Settings::PuzzleType puzzle_type);
     void update_ui_for_new_puzzle();
     void color_board();

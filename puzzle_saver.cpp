@@ -106,14 +106,8 @@ namespace  {
     }
 }
 
-bool save_to_file(const Settings::Sudoku::BoardSettings& board_settings, const Board& example_board)
+void save_to_file(const Settings::Sudoku::BoardSettings& board_settings, const Board& example_board, QFile& file)
 {
-    QString file_name("/home/hugo/.puzzlesolver/output.xpuz");
-    QFile file(file_name);
-    if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        return false;
-    }
-
     QDomDocument dom_document;
     QDomElement puzzle = dom_document.createElement("puzzle");
     dom_document.appendChild(puzzle);
@@ -123,9 +117,6 @@ bool save_to_file(const Settings::Sudoku::BoardSettings& board_settings, const B
 
     QTextStream out(&file);
     out << dom_document.toString();
-    file.close();
-
-    return true;
 }
 
 }
