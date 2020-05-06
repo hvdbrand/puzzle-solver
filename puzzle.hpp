@@ -36,6 +36,8 @@ public:
     bool has_example() const;
     Board get_example() const;
 
+    Settings::Sudoku::BoardSettings get_board_settings();
+
 private:
     Settings::Sudoku::BoardSettings m_board_settings;
 

@@ -8,18 +8,14 @@
 namespace PuzzleLoader {
 
 namespace {
-    bool verifySchema()
-    {
-        return true;
-    }
-
     Settings::PuzzleColor stringToColor(const QString& color_str)
     {
-        Settings::PuzzleColor color = Settings::PuzzleColor::B;
+        Settings::PuzzleColor color = Settings::PuzzleColor::NONE;
         static const std::map<std::string, Settings::PuzzleColor> color_map = { {"NONE", Settings::PuzzleColor::NONE},
                                                                                 {"A", Settings::PuzzleColor::A},
                                                                                 {"B", Settings::PuzzleColor::B},
                                                                                 {"C", Settings::PuzzleColor::C},
+                                                                                {"D", Settings::PuzzleColor::D},
                                                                                 {"A_DARK", Settings::PuzzleColor::A_DARK},
                                                                                 {"B_DARK", Settings::PuzzleColor::B_DARK},
                                                                               };
@@ -80,6 +76,18 @@ namespace {
         return success;
     }
 
+    void parse_empty_points_from_element(QDomElement empty_points_element, Settings::Sudoku::BoardSettings& board_settings)
+    {
+        for (QDomElement point_element = empty_points_element.firstChildElement(); !point_element.isNull(); point_element = point_element.nextSiblingElement())
+        {
+            Point point;
+            if(parse_point_from_element(point_element, point, board_settings))
+            {
+                board_settings.empty_points.insert(point);
+            }
+        }
+    }
+
     void parse_example_from_element(QDomElement example_element, Settings::Sudoku::BoardSettings& board_settings)
     {
         for (QDomElement example_point = example_element.firstChildElement(); !example_point.isNull(); example_point = example_point.nextSiblingElement())
@@ -104,7 +112,7 @@ namespace {
         }
     }
 
-    bool parse_sudoku_settings_from_element(QDomElement sudokuElement, Settings::Sudoku::BoardSettings& board_settings)
+    bool parse_sudoku_settings_from_element(QDomElement sudoku_element, Settings::Sudoku::BoardSettings& board_settings)
     {
         bool found_values = false;
         bool found_regions = false;
@@ -112,7 +120,7 @@ namespace {
         board_settings.empty_points.clear();
         board_settings.has_example = false;
 
-        for (QDomElement element = sudokuElement.firstChildElement(); !element.isNull(); element = element.nextSiblingElement())
+        for (QDomElement element = sudoku_element.firstChildElement(); !element.isNull(); element = element.nextSiblingElement())
         {
             if (element.tagName() == "values")
             {
@@ -141,12 +149,15 @@ namespace {
             {
                 found_regions = parse_regions_from_element(element, board_settings);
             }
+            else if (element.tagName() == "empty_points")
+            {
+                parse_empty_points_from_element(element, board_settings);
+            }
             else if (element.tagName() == "example")
             {
                 board_settings.has_example = true;
                 parse_example_from_element(element, board_settings);
             }
-            // TODO: Add empty region
         }
         return found_values && found_regions;
     }
@@ -154,15 +165,16 @@ namespace {
     bool load_settings_from_file(QIODevice *device, Settings::Sudoku::BoardSettings& board_settings)
     {
         bool success = false;
-        QDomDocument domDocument;
+        QDomDocument dom_document;
 
         QString errorStr;
         int errorLine;
         int errorColumn;
 
-        if (domDocument.setContent(device, true, &errorStr, &errorLine, &errorColumn))
+        if (dom_document.setContent(device, true, &errorStr, &errorLine, &errorColumn))
         {
-            QDomElement root = domDocument.documentElement();
+            // TODO: Verify xml schema
+            QDomElement root = dom_document.documentElement();
             if (root.tagName() == "puzzle")
             {
                 bool found_rows = false;
@@ -209,7 +221,7 @@ std::unique_ptr<Puzzle> load_from_file()
     QString file_name("/home/hugo/.puzzlesolver/sudoku_mix_362.xpuz");
     QFile file(file_name);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-            return puzzle;
+        return puzzle;
     }
 
     Settings::Sudoku::BoardSettings board_settings;

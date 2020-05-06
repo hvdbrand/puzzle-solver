@@ -12,6 +12,7 @@ enum class PuzzleColor
   A,
   B,
   C,
+  D,
   A_DARK,
   B_DARK,
 };

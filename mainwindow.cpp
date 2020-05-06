@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "puzzle_loader.hpp"
+#include "puzzle_saver.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -16,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     PUZZLECOLOR_TO_DISPLAYCOLOR {{Settings::PuzzleColor::A, QColor(255,0,0,50) },
                                  {Settings::PuzzleColor::B, QColor(0,0,255,50) },
                                  {Settings::PuzzleColor::C, QColor(0,255,0,50) },
+                                 {Settings::PuzzleColor::D, QColor(255,255,0,50) },
                                  {Settings::PuzzleColor::A_DARK, QColor(170,20,20,120) },
                                  {Settings::PuzzleColor::B_DARK, QColor(20,20,170,120) },
                                 }
@@ -29,6 +31,12 @@ MainWindow::MainWindow(QWidget *parent) :
     loadAction->setStatusTip(tr("Load a puzzle format..."));
     connect(loadAction, &QAction::triggered, this, &MainWindow::load);
     fileMenu->addAction(loadAction);
+
+    saveAction = new QAction(tr("&Save current puzzle..."), this);
+    saveAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    saveAction->setStatusTip(tr("Save a puzzle format and example..."));
+    connect(saveAction, &QAction::triggered, this, &MainWindow::save);
+    fileMenu->addAction(saveAction);
 
     auto predefinedMenu = fileMenu->addMenu(tr("Predefined boards"));
     int index = 1;
@@ -60,8 +68,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(exampleAction, &QAction::triggered, this, &MainWindow::set_example);
     menuBar()->addAction(exampleAction);
 
-    solveAction = new QAction(tr("&Solve puzzle"), this);
-    solveAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    solveAction = new QAction(tr("S&olve puzzle"), this);
+    solveAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
     solveAction->setStatusTip(tr("Solve the puzzle"));
     connect(solveAction, &QAction::triggered, this, &MainWindow::solve);
     menuBar()->addAction(solveAction);
@@ -86,6 +94,16 @@ void MainWindow::load()
         ui->output->append("No puzzle was loaded.\n");
     }
     update_ui_for_new_puzzle();
+}
+
+void MainWindow::save()
+{
+    Board board = parse_board();
+    auto board_settings = m_puzzle->get_board_settings();
+    if (!PuzzleSaver::save_to_file(board_settings, board))
+    {
+        std::cout << "Saving failed" << std::endl;
+    }
 }
 
 void MainWindow::load_predefined(const std::string& puzzle_name, Settings::PuzzleType puzzle_type)
@@ -118,9 +136,9 @@ void MainWindow::update_ui_for_new_puzzle()
 
         QFont font("Helvetica", 12);
         ui->tableWidget->setFont(font);
-        for (int row = 0; row < m_puzzle->getRows(); ++ row)
+        for (Position row = 0; row < m_puzzle->getRows(); ++row)
         {
-            for (int column = 0; column < m_puzzle->getColumns(); ++column)
+            for (Position column = 0; column < m_puzzle->getColumns(); ++column)
             {
                 ui->tableWidget->setItem(row, column, new QTableWidgetItem);
                 ui->tableWidget->item(row, column)->setTextAlignment(Qt::AlignCenter | Qt::AlignHCenter);
@@ -132,6 +150,7 @@ void MainWindow::update_ui_for_new_puzzle()
         ui->tableWidget->setVisible(true);
         exampleAction->setEnabled(m_puzzle->has_example());
         clearAction->setEnabled(true);
+        saveAction->setEnabled(true);
         solveAction->setEnabled(true);
     }
     else
@@ -139,6 +158,7 @@ void MainWindow::update_ui_for_new_puzzle()
         ui->tableWidget->setVisible(false);
         exampleAction->setEnabled(false);
         clearAction->setEnabled(false);
+        saveAction->setEnabled(false);
         solveAction->setEnabled(false);
     }
 }
@@ -164,15 +184,18 @@ Board MainWindow::parse_board()
     const Position columns = m_puzzle->getColumns();
     Board parsed(rows, std::vector<int>(columns));
     QFont font("Helvetica", 14, QFont::Bold);
-    for (int row = 0; row < rows; ++row)
+    for (Position row = 0; row < rows; ++row)
     {
-        for (int column = 0; column < columns; ++column)
+        for (Position column = 0; column < columns; ++column)
         {
             QTableWidgetItem* item = ui->tableWidget->item(row, column);
             if (item != nullptr)
             {
                 parsed[row][column] = item->text().toInt();
-                ui->tableWidget->item(row, column)->setFont(font);
+                if (parsed[row][column] != 0)
+                {
+                    ui->tableWidget->item(row, column)->setFont(font);
+                }
             }
         }
     }
@@ -182,9 +205,9 @@ Board MainWindow::parse_board()
 void MainWindow::set_board(Board board_to_set)
 {
     QFont font("Helvetica", 12);
-    for (int row = 0; row < m_puzzle->getRows(); ++row)
+    for (Position row = 0; row < m_puzzle->getRows(); ++row)
     {
-        for (int column = 0; column < m_puzzle->getColumns(); ++column)
+        for (Position column = 0; column < m_puzzle->getColumns(); ++column)
         {
             QTableWidgetItem* item = ui->tableWidget->item(row, column);
             bool board_cell_is_not_empty = board_to_set[row][column] != 0;
@@ -210,22 +233,20 @@ void MainWindow::solve()
         std::ostringstream ss;
         ss << "Solution found in " << time_taken.count() << " ms";
         ui->output->append(QString::fromStdString(ss.str()));
-        ui->output->append("Solved!\n");
         set_board(m_puzzle->get_solution());
     } else {
         std::ostringstream ss;
         ss << "Solving the provided parsed is not possible!";
         ui->output->append(QString::fromStdString(ss.str()));
-        ui->output->append("Not Solved!\n");
     }
 }
 
 void MainWindow::clear()
 {
     QFont font("Helvetica", 12);
-    for (int row = 0; row < m_puzzle->getRows(); ++ row)
+    for (Position row = 0; row < m_puzzle->getRows(); ++row)
     {
-        for (int column = 0; column < m_puzzle->getColumns(); ++column)
+        for (Position column = 0; column < m_puzzle->getColumns(); ++column)
         {
             ui->tableWidget->item(row, column)->setText("");
             ui->tableWidget->item(row, column)->setFont(font);

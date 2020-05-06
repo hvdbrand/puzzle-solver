@@ -21,6 +21,7 @@ public:
 
 private:
     void load();
+    void save();
     void load_predefined(const std::string& puzzle_name, Settings::PuzzleType puzzle_type);
     void update_ui_for_new_puzzle();
     void color_board();
@@ -34,6 +35,7 @@ private:
     Ui::MainWindow *ui;
     QAction* clearAction;
     QAction* exampleAction;
+    QAction* saveAction;
     QAction* solveAction;
 
     const std::vector<std::pair<std::string, Settings::PuzzleType>> PREDEFINED_PUZZLES;

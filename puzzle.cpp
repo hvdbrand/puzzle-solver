@@ -89,3 +89,8 @@ Board Puzzle::get_example() const
     Settings::Sudoku::get_sudoku_example(m_board_settings.type, board);
     return board;
 }
+
+Settings::Sudoku::BoardSettings Puzzle::get_board_settings()
+{
+    return m_board_settings;
+}

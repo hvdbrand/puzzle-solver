@@ -13,6 +13,8 @@ add_library(puzzle-solver
     puzzle.hpp
     puzzle_loader.cpp
     puzzle_loader.hpp
+    puzzle_saver.cpp
+    puzzle_saver.hpp
     puzzle_types.hpp
     sudokusolver.cpp
     sudokusolver.hpp
