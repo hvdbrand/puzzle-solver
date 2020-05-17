@@ -25,7 +25,7 @@ struct BoardSettings
     int values;
     int min_value;
     int max_value;
-    RegionSet regions;
+    RegionVector regions;
     PointSet empty_points;
     bool has_example;
     ExampleSet example;

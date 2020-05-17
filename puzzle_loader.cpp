@@ -63,7 +63,7 @@ namespace {
                 Point point;
                 if(parse_point_from_element(pointElement, point, board_settings))
                 {
-                    region.first.insert(point);
+                    region.first.push_back(point);
                 }
             }
             if (region.first.size() != board_settings.values)
@@ -71,7 +71,7 @@ namespace {
                 success = false;
                 break;
             }
-            board_settings.regions.insert(region);
+            board_settings.regions.push_back(region);
         }
         return success;
     }

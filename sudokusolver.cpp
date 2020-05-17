@@ -6,31 +6,31 @@ namespace Settings {
 namespace Sudoku {
 
 namespace {
-    PointSet getMinibox(int row, int column, int size)
+    PointVector getMinibox(int row, int column, int size)
     {
-        PointSet points;
+        PointVector points;
         for (int rr = 0; rr < size; ++rr) {
             for (int cc = 0; cc < size; ++cc) {
-                points.emplace(row + rr, column + cc);
+                points.emplace_back(row + rr, column + cc);
             }
         }
         return points;
     }
 
-    PointSet getHorizontalRegion(int row, int column, int size)
+    PointVector getHorizontalRegion(int row, int column, int size)
     {
-        PointSet points;
+        PointVector points;
         for (int cc = 0; cc < size; ++cc) {
-            points.emplace(row, column + cc);
+            points.emplace_back(row, column + cc);
         }
         return points;
     }
 
-    PointSet getVerticalRegion(int row, int column, int size)
+    PointVector getVerticalRegion(int row, int column, int size)
     {
-        PointSet points;
+        PointVector points;
         for (int rr = 0; rr < size; ++rr) {
-            points.emplace(row + rr, column);
+            points.emplace_back(row + rr, column);
         }
         return points;
     }

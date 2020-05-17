@@ -24,10 +24,11 @@ using Position = int;
 using Board = std::vector<std::vector<Value>>;
 
 using Point = std::pair<Position, Position>;
+using PointVector = std::vector<Point>;
 using PointSet = std::set<Point>;
 
-using Region = std::pair<PointSet, Settings::PuzzleColor>;
-using RegionSet = std::set<Region>;
+using Region = std::pair<PointVector, Settings::PuzzleColor>;
+using RegionVector = std::vector<Region>;
 
 using ExamplePoint = std::pair<Point, Value>;
 using ExampleSet = std::set<ExamplePoint>;

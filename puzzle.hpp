@@ -23,9 +23,14 @@ public:
     Puzzle(const Settings::Sudoku::BoardSettings& board_settings);
     virtual ~Puzzle();
 
-    int getRows() const;
-    int getColumns() const;
-    RegionSet getRegions() const;
+    int get_values() const;
+    int get_rows() const;
+    int get_columns() const;
+    RegionVector get_regions() const;
+
+    bool replace_region(int i, Region& region);
+    bool remove_region(int i);
+    bool add_region(Region& region);
 
     // Returns true if the provided board satisfies the puzzle constraints
     bool apply_board(const Board& board);

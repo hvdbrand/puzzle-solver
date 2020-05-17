@@ -30,17 +30,22 @@ Puzzle::~Puzzle()
     }
 }
 
-int Puzzle::getRows() const
+int Puzzle::get_values() const
+{
+    return m_board_settings.values;
+}
+
+int Puzzle::get_rows() const
 {
     return m_board_settings.rows;
 }
 
-int Puzzle::getColumns() const
+int Puzzle::get_columns() const
 {
     return m_board_settings.columns;
 }
 
-RegionSet Puzzle::getRegions() const
+RegionVector Puzzle::get_regions() const
 {
     return m_board_settings.regions;
 }

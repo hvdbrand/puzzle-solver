@@ -5,10 +5,12 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QStandardItemModel>
 
 #include <chrono>
 #include <iostream>
 #include <sstream>
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -57,7 +59,6 @@ MainWindow::MainWindow(QWidget *parent) :
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     connect(quitAction, &QAction::triggered, [] {QApplication::quit();});
     fileMenu->addAction(quitAction);
-
 
     clearAction = new QAction(tr("&Clear puzzle"), this);
     clearAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
@@ -170,21 +171,21 @@ void MainWindow::update_ui_for_new_puzzle()
 {
     if (m_puzzle)
     {
-        ui->tableWidget->setRowCount(m_puzzle->getRows());
-        ui->tableWidget->setColumnCount(m_puzzle->getColumns());
+        ui->tableWidget->setRowCount(m_puzzle->get_rows());
+        ui->tableWidget->setColumnCount(m_puzzle->get_columns());
         ui->tableWidget->clearContents();
         ui->tableWidget->clearFocus();
         int width = 30;
-        for (int column = 0; column < m_puzzle->getColumns(); ++column)
+        for (int column = 0; column < m_puzzle->get_columns(); ++column)
         {
             ui->tableWidget->setColumnWidth(column, width);
         }
 
         QFont font("Helvetica", 12);
         ui->tableWidget->setFont(font);
-        for (Position row = 0; row < m_puzzle->getRows(); ++row)
+        for (Position row = 0; row < m_puzzle->get_rows(); ++row)
         {
-            for (Position column = 0; column < m_puzzle->getColumns(); ++column)
+            for (Position column = 0; column < m_puzzle->get_columns(); ++column)
             {
                 ui->tableWidget->setItem(row, column, new QTableWidgetItem);
                 ui->tableWidget->item(row, column)->setTextAlignment(Qt::AlignCenter | Qt::AlignHCenter);
@@ -193,6 +194,27 @@ void MainWindow::update_ui_for_new_puzzle()
 
         color_board();
 
+        m_model = std::unique_ptr<QAbstractItemModel>(new QStandardItemModel);
+        ui->regions->setModel(m_model.get());
+        m_model->insertColumn(0);
+
+        m_model->insertRows(0, m_puzzle->get_regions().size());
+        int i = 0;
+        for(auto region : m_puzzle->get_regions())
+        {
+            std::ostringstream ss;
+            ss << "(" << region.first.front().first << "," << region.first.front().second << ") -- ("
+               << region.first.back().first << "," << region.first.back().second << ")";
+            m_model->setData(m_model->index(i, 0), QVariant(ss.str().c_str()));
+            if (region.second != Settings::PuzzleColor::NONE)
+            {
+                m_model->data(m_model->index(i, 0)) = PUZZLECOLOR_TO_DISPLAYCOLOR.at(region.second);
+            }
+            i++;
+        }
+
+
+        ui->regions->setVisible(true);
         ui->tableWidget->setVisible(true);
         exampleAction->setEnabled(m_puzzle->has_example());
         clearAction->setEnabled(true);
@@ -201,6 +223,8 @@ void MainWindow::update_ui_for_new_puzzle()
     }
     else
     {
+        m_model.reset();
+        ui->regions->setVisible(false);
         ui->tableWidget->setVisible(false);
         exampleAction->setEnabled(false);
         clearAction->setEnabled(false);
@@ -211,7 +235,7 @@ void MainWindow::update_ui_for_new_puzzle()
 
 void MainWindow::color_board()
 {
-    for (Region region : m_puzzle->getRegions())
+    for (Region region : m_puzzle->get_regions())
     {
         if (region.second != Settings::PuzzleColor::NONE)
         {
@@ -226,8 +250,8 @@ void MainWindow::color_board()
 
 Board MainWindow::parse_board()
 {
-    const Position rows = m_puzzle->getRows();
-    const Position columns = m_puzzle->getColumns();
+    const Position rows = m_puzzle->get_rows();
+    const Position columns = m_puzzle->get_columns();
     Board parsed(rows, std::vector<int>(columns));
     QFont font("Helvetica", 14, QFont::Bold);
     for (Position row = 0; row < rows; ++row)
@@ -251,9 +275,9 @@ Board MainWindow::parse_board()
 void MainWindow::set_board(Board board_to_set)
 {
     QFont font("Helvetica", 12);
-    for (Position row = 0; row < m_puzzle->getRows(); ++row)
+    for (Position row = 0; row < m_puzzle->get_rows(); ++row)
     {
-        for (Position column = 0; column < m_puzzle->getColumns(); ++column)
+        for (Position column = 0; column < m_puzzle->get_columns(); ++column)
         {
             QTableWidgetItem* item = ui->tableWidget->item(row, column);
             bool board_cell_is_not_empty = board_to_set[row][column] != 0;
@@ -290,9 +314,9 @@ void MainWindow::solve()
 void MainWindow::clear()
 {
     QFont font("Helvetica", 12);
-    for (Position row = 0; row < m_puzzle->getRows(); ++row)
+    for (Position row = 0; row < m_puzzle->get_rows(); ++row)
     {
-        for (Position column = 0; column < m_puzzle->getColumns(); ++column)
+        for (Position column = 0; column < m_puzzle->get_columns(); ++column)
         {
             ui->tableWidget->item(row, column)->setText("");
             ui->tableWidget->item(row, column)->setFont(font);

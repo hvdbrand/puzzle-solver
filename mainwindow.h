@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "puzzle.hpp"
+#include <QAbstractItemModel>
 #include <QMainWindow>
 #include <map>
 #include <memory>
@@ -42,6 +43,7 @@ private:
     const std::map<Settings::PuzzleColor, QColor> PUZZLECOLOR_TO_DISPLAYCOLOR;
 
     std::unique_ptr<Puzzle> m_puzzle;
+    std::unique_ptr<QAbstractItemModel> m_model;
 };
 
 #endif // MAINWINDOW_H

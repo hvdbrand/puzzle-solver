@@ -48,7 +48,7 @@ namespace  {
         example_point_element.setAttribute("value", QString::number(example_point.second));
     }
 
-    void append_regions(QDomDocument dom_document, QDomElement sudoku_element, const RegionSet& regions)
+    void append_regions(QDomDocument dom_document, QDomElement sudoku_element, const RegionVector& regions)
     {
         QDomElement regions_element = dom_document.createElement("regions");
         sudoku_element.appendChild(regions_element);
