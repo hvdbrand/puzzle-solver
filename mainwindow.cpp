@@ -25,7 +25,15 @@ MainWindow::MainWindow(QWidget *parent) :
                                  {Settings::PuzzleColor::D, QColor(255,255,0,50) },
                                  {Settings::PuzzleColor::A_DARK, QColor(170,20,20,120) },
                                  {Settings::PuzzleColor::B_DARK, QColor(20,20,170,120) },
-                                }
+                                },
+    COLORNAME_TO_PUZZLECOLOR {{"None", Settings::PuzzleColor::NONE},
+                              {"Red", Settings::PuzzleColor::A},
+                              {"Blue", Settings::PuzzleColor::B},
+                              {"Green", Settings::PuzzleColor::C},
+                              {"Yellow", Settings::PuzzleColor::D},
+                              {"Dark Red", Settings::PuzzleColor::A_DARK},
+                              {"Dark Blue", Settings::PuzzleColor::B_DARK},
+                             }
 {
     ui->setupUi(this);
 
@@ -77,6 +85,11 @@ MainWindow::MainWindow(QWidget *parent) :
     solveAction->setStatusTip(tr("Solve the puzzle"));
     connect(solveAction, &QAction::triggered, this, &MainWindow::solve);
     menuBar()->addAction(solveAction);
+
+    for (auto color : COLORNAME_TO_PUZZLECOLOR)
+    {
+        ui->colorCombo->addItem(color.first, static_cast<int>(color.second));
+    }
 
     update_ui_for_new_puzzle();
 }
@@ -197,6 +210,7 @@ void MainWindow::update_ui_for_new_puzzle()
         m_model = std::unique_ptr<QAbstractItemModel>(new QStandardItemModel);
         ui->regions->setModel(m_model.get());
         m_model->insertColumn(0);
+        ui->regions->setColumnWidth(0, 120);
 
         m_model->insertRows(0, m_puzzle->get_regions().size());
         int i = 0;
@@ -205,11 +219,13 @@ void MainWindow::update_ui_for_new_puzzle()
             std::ostringstream ss;
             ss << "(" << region.first.front().first << "," << region.first.front().second << ") -- ("
                << region.first.back().first << "," << region.first.back().second << ")";
-            m_model->setData(m_model->index(i, 0), QVariant(ss.str().c_str()));
+            QMap<int, QVariant> map;
+            map[Qt::DisplayRole] = QVariant(ss.str().c_str());
             if (region.second != Settings::PuzzleColor::NONE)
             {
-                m_model->data(m_model->index(i, 0)) = PUZZLECOLOR_TO_DISPLAYCOLOR.at(region.second);
+                map[Qt::BackgroundRole] = QBrush(PUZZLECOLOR_TO_DISPLAYCOLOR.at(region.second));
             }
+            m_model->setItemData(m_model->index(i, 0), map);
             i++;
         }
 
@@ -220,6 +236,7 @@ void MainWindow::update_ui_for_new_puzzle()
         clearAction->setEnabled(true);
         saveAction->setEnabled(true);
         solveAction->setEnabled(true);
+        region_buttons_set_visible(false);
     }
     else
     {
@@ -230,6 +247,7 @@ void MainWindow::update_ui_for_new_puzzle()
         clearAction->setEnabled(false);
         saveAction->setEnabled(false);
         solveAction->setEnabled(false);
+        region_buttons_set_visible(false);
     }
 }
 
@@ -327,4 +345,66 @@ void MainWindow::clear()
 void MainWindow::set_example()
 {
     set_board(m_puzzle->get_example());
+}
+
+void MainWindow::on_regions_clicked(const QModelIndex &index)
+{
+    ui->tableWidget->clearSelection();
+    auto region = m_puzzle->get_regions()[index.row()];
+    for (auto point : region.first)
+    {
+        auto model_index = ui->tableWidget->model()->index(point.first, point.second);
+        ui->tableWidget->selectionModel()->select(model_index, QItemSelectionModel::Select);
+    }
+    for (auto color : COLORNAME_TO_PUZZLECOLOR)
+    {
+        if (color.second == region.second)
+        {
+            ui->colorCombo->setCurrentText(color.first);
+        }
+    }
+}
+
+void MainWindow::on_regions_doubleClicked(const QModelIndex &index)
+{
+    region_buttons_set_visible(true);
+    m_selected_region = index;
+}
+
+void MainWindow::region_buttons_set_visible(bool visible)
+{
+    ui->okButton->setVisible(visible);
+    ui->cancelButton->setVisible(visible);
+    ui->colorCombo->setVisible(visible);
+}
+
+void MainWindow::on_okButton_clicked()
+{
+    Region region = m_puzzle->get_regions()[m_selected_region.row()];
+    region.second = static_cast<Settings::PuzzleColor>(ui->colorCombo->currentData().toInt());
+    region.first.clear();
+    for (auto selection : ui->tableWidget->selectionModel()->selection())
+    {
+        for (auto index : selection.indexes())
+        {
+            region.first.emplace_back(index.row(), index.column());
+        }
+    }
+    if (region.first.size() != m_puzzle->get_values())
+    {
+        ui->output->append(".\n");
+        QMessageBox::warning(this, tr("Invalid region"),
+                             tr("Region contains %1 points, but should contain %2 points.")
+                             .arg(region.first.size()).arg(m_puzzle->get_values()));
+    }
+    else
+    {
+        m_puzzle->replace_region(m_selected_region.row(), region);
+        update_ui_for_new_puzzle();
+    }
+}
+
+void MainWindow::on_cancelButton_clicked()
+{
+    region_buttons_set_visible(false);
 }
