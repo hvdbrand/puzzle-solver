@@ -33,8 +33,6 @@ struct BoardSettings
 
 BoardSettings get_board_settings(Type type);
 
-bool get_sudoku_example(Type sudoku_type, Board& example_board);
-
 }
 }
 

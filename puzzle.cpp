@@ -92,16 +92,10 @@ bool Puzzle::has_example() const
 Board Puzzle::get_example() const
 {
     Board board(m_board_settings.rows, std::vector<Value>(m_board_settings.columns));
-    if (m_board_settings.example.size() > 0)
+    for (auto examplePoint : m_board_settings.example)
     {
-        for (auto examplePoint : m_board_settings.example)
-        {
-            board[examplePoint.first.first][examplePoint.first.second] = examplePoint.second;
-        }
-        return board;
+        board[examplePoint.first.first][examplePoint.first.second] = examplePoint.second;
     }
-    // TODO: Move separate examples from get_sudoku_example to board_settings
-    Settings::Sudoku::get_sudoku_example(m_board_settings.type, board);
     return board;
 }
 
