@@ -60,6 +60,11 @@ bool Puzzle::remove_region(int i)
     m_board_settings.regions.erase(m_board_settings.regions.begin() +  i);
 }
 
+bool Puzzle::add_region(Region& region)
+{
+    m_board_settings.regions.push_back(region);
+}
+
 bool Puzzle::apply_board(const Board& board)
 {
     if (m_solver != NULL)

@@ -212,7 +212,7 @@ void MainWindow::update_ui_for_new_puzzle()
         m_model->insertColumn(0);
         ui->regions->setColumnWidth(0, 120);
 
-        m_model->insertRows(0, m_puzzle->get_regions().size());
+        m_model->insertRows(0, m_puzzle->get_regions().size() + 1);
         int i = 0;
         for(auto region : m_puzzle->get_regions())
         {
@@ -221,6 +221,7 @@ void MainWindow::update_ui_for_new_puzzle()
                << region.first.back().first << "," << region.first.back().second << ")";
             QMap<int, QVariant> map;
             map[Qt::DisplayRole] = QVariant(ss.str().c_str());
+            map[Qt::UserRole] = QVariant(i);
             if (region.second != Settings::PuzzleColor::NONE)
             {
                 map[Qt::BackgroundRole] = QBrush(PUZZLECOLOR_TO_DISPLAYCOLOR.at(region.second));
@@ -228,7 +229,10 @@ void MainWindow::update_ui_for_new_puzzle()
             m_model->setItemData(m_model->index(i, 0), map);
             i++;
         }
-
+        QMap<int, QVariant> map;
+        map[Qt::DisplayRole] = QVariant("Add new region...");
+        map[Qt::UserRole] = QVariant(ADD_NEW_REGION);
+        m_model->setItemData(m_model->index(i, 0), map);
 
         ui->regions->setVisible(true);
         ui->tableWidget->setVisible(true);
@@ -349,8 +353,14 @@ void MainWindow::set_example()
 
 void MainWindow::on_regions_clicked(const QModelIndex &index)
 {
+    int region_index = index.data(Qt::UserRole).toInt();
+    if (region_index == ADD_NEW_REGION)
+    {
+        ui->colorCombo->setCurrentText(COLORNAME_TO_PUZZLECOLOR.at(0).first);
+        return;
+    }
     ui->tableWidget->clearSelection();
-    auto region = m_puzzle->get_regions()[index.row()];
+    auto region = m_puzzle->get_regions()[region_index];
     for (auto point : region.first)
     {
         auto model_index = ui->tableWidget->model()->index(point.first, point.second);
@@ -368,21 +378,21 @@ void MainWindow::on_regions_clicked(const QModelIndex &index)
 void MainWindow::on_regions_doubleClicked(const QModelIndex &index)
 {
     region_buttons_set_visible(true);
-    m_selected_region = index;
+    m_current_region = index.data(Qt::UserRole).toInt();
 }
 
 void MainWindow::region_buttons_set_visible(bool visible)
 {
     ui->okButton->setVisible(visible);
     ui->cancelButton->setVisible(visible);
+    ui->deleteButton->setVisible(visible);
     ui->colorCombo->setVisible(visible);
 }
 
 void MainWindow::on_okButton_clicked()
 {
-    Region region = m_puzzle->get_regions()[m_selected_region.row()];
+    Region region;
     region.second = static_cast<Settings::PuzzleColor>(ui->colorCombo->currentData().toInt());
-    region.first.clear();
     for (auto selection : ui->tableWidget->selectionModel()->selection())
     {
         for (auto index : selection.indexes())
@@ -399,7 +409,14 @@ void MainWindow::on_okButton_clicked()
     }
     else
     {
-        m_puzzle->replace_region(m_selected_region.row(), region);
+        if (m_current_region == ADD_NEW_REGION)
+        {
+            m_puzzle->add_region(region);
+        }
+        else
+        {
+            m_puzzle->replace_region(m_current_region, region);
+        }
         update_ui_for_new_puzzle();
     }
 }
@@ -407,4 +424,10 @@ void MainWindow::on_okButton_clicked()
 void MainWindow::on_cancelButton_clicked()
 {
     region_buttons_set_visible(false);
+}
+
+void MainWindow::on_deleteButton_clicked()
+{
+    m_puzzle->remove_region(m_current_region);
+    update_ui_for_new_puzzle();
 }

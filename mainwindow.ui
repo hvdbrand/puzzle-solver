@@ -242,10 +242,23 @@
     <property name="geometry">
      <rect>
       <x>690</x>
-      <y>240</y>
+      <y>270</y>
       <width>141</width>
       <height>25</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="deleteButton">
+    <property name="geometry">
+     <rect>
+      <x>730</x>
+      <y>240</y>
+      <width>61</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Delete</string>
     </property>
    </widget>
   </widget>

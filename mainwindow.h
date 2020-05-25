@@ -29,6 +29,8 @@ private slots:
 
     void on_cancelButton_clicked();
 
+    void on_deleteButton_clicked();
+
 private:
     void save();
     void load();    
@@ -57,7 +59,8 @@ private:
     std::unique_ptr<Puzzle> m_puzzle;
     std::unique_ptr<QAbstractItemModel> m_model;
 
-    QModelIndex m_selected_region;
+    const int ADD_NEW_REGION = -1;
+    int m_current_region;
 };
 
 #endif // MAINWINDOW_H
