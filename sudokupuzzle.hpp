@@ -4,24 +4,12 @@
 #include "sudokusolver.hpp"
 #include <memory>
 
-namespace Settings {
-
-enum class PuzzleType
-{
-  SUDOKU_9X9,
-  SUDOKU_16X16,
-  TWINSUDOKU_9X15,
-  SUDOKU_MIX_9X9_TWICE,
-};
-
-}
-
-class Puzzle
+class SudokuPuzzle
 {
 public:
-    Puzzle(Settings::PuzzleType predefined_puzzle_type);
-    Puzzle(const Settings::Sudoku::BoardSettings& board_settings);
-    virtual ~Puzzle();
+    SudokuPuzzle(Settings::PuzzleType predefined_puzzle_type);
+    SudokuPuzzle(const Settings::Sudoku::BoardSettings& board_settings);
+    virtual ~SudokuPuzzle();
 
     int get_values() const;
     int get_rows() const;
@@ -33,13 +21,13 @@ public:
     bool add_region(Region& region);
 
     // Returns true if the provided board satisfies the puzzle constraints
-    bool apply_board(const Board& board);
+    bool apply_board(const SudokuBoard& board);
     // Returns true if the puzzle has a solution
     bool solve();
-    Board get_solution() const;
+    SudokuBoard get_solution() const;
 
     bool has_example() const;
-    Board get_example() const;
+    SudokuBoard get_example() const;
 
     Settings::Sudoku::BoardSettings get_board_settings();
 

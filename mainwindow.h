@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "puzzle.hpp"
+#include "sudokupuzzle.hpp"
 #include <QAbstractItemModel>
 #include <QMainWindow>
 #include <map>
@@ -37,8 +37,8 @@ private:
     void load_predefined(const std::string& puzzle_name, Settings::PuzzleType puzzle_type);
     void update_ui_for_new_puzzle();
     void color_board();
-    Board parse_board();
-    void set_board(Board board_to_set);
+    SudokuBoard parse_board();
+    void set_sudoku_board(SudokuBoard board_to_set);
 
     void clear();
     void set_example();
@@ -56,7 +56,8 @@ private:
     const std::map<Settings::PuzzleColor, QColor> PUZZLECOLOR_TO_DISPLAYCOLOR;
     const std::vector<std::pair<QString, Settings::PuzzleColor>> COLORNAME_TO_PUZZLECOLOR;
 
-    std::unique_ptr<Puzzle> m_puzzle;
+    std::unique_ptr<SudokuPuzzle> m_sudoku_puzzle;
+    std::unique_ptr<int> m_gc_puzzle;
     std::unique_ptr<QAbstractItemModel> m_model;
 
     const int ADD_NEW_REGION = -1;

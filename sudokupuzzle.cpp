@@ -1,4 +1,4 @@
-#include "puzzle.hpp"
+#include "sudokupuzzle.hpp"
 #include <map>
 
 namespace {
@@ -10,19 +10,19 @@ const std::map<Settings::PuzzleType, Settings::Sudoku::Type> SUDOKU_TYPES {
     };
 }
 
-Puzzle::Puzzle(Settings::PuzzleType predefined_puzzle_type)
+SudokuPuzzle::SudokuPuzzle(Settings::PuzzleType predefined_puzzle_type)
     : m_board_settings(Settings::Sudoku::get_board_settings(SUDOKU_TYPES.at(predefined_puzzle_type)))
     , m_solver(NULL)
 {
 }
 
-Puzzle::Puzzle(const Settings::Sudoku::BoardSettings& board_settings)
+SudokuPuzzle::SudokuPuzzle(const Settings::Sudoku::BoardSettings& board_settings)
     : m_board_settings(board_settings)
     , m_solver(NULL)
 {
 }
 
-Puzzle::~Puzzle()
+SudokuPuzzle::~SudokuPuzzle()
 {
     if (m_solver != NULL)
     {
@@ -30,42 +30,42 @@ Puzzle::~Puzzle()
     }
 }
 
-int Puzzle::get_values() const
+int SudokuPuzzle::get_values() const
 {
     return m_board_settings.values;
 }
 
-int Puzzle::get_rows() const
+int SudokuPuzzle::get_rows() const
 {
     return m_board_settings.rows;
 }
 
-int Puzzle::get_columns() const
+int SudokuPuzzle::get_columns() const
 {
     return m_board_settings.columns;
 }
 
-RegionVector Puzzle::get_regions() const
+RegionVector SudokuPuzzle::get_regions() const
 {
     return m_board_settings.regions;
 }
 
-bool Puzzle::replace_region(int i, Region& region)
+bool SudokuPuzzle::replace_region(int i, Region& region)
 {
     m_board_settings.regions[i] = region;
 }
 
-bool Puzzle::remove_region(int i)
+bool SudokuPuzzle::remove_region(int i)
 {
     m_board_settings.regions.erase(m_board_settings.regions.begin() +  i);
 }
 
-bool Puzzle::add_region(Region& region)
+bool SudokuPuzzle::add_region(Region& region)
 {
     m_board_settings.regions.push_back(region);
 }
 
-bool Puzzle::apply_board(const Board& board)
+bool SudokuPuzzle::apply_board(const SudokuBoard& board)
 {
     if (m_solver != NULL)
     {
@@ -75,28 +75,28 @@ bool Puzzle::apply_board(const Board& board)
     return m_solver->apply_board(board);
 }
 
-bool Puzzle::solve()
+bool SudokuPuzzle::solve()
 {
     if (m_solver == NULL)
         return false;
     return m_solver->solve();
 }
 
-Board Puzzle::get_solution() const
+SudokuBoard SudokuPuzzle::get_solution() const
 {
     if (m_solver == NULL)
-        return Board(m_board_settings.rows, std::vector<Value>(m_board_settings.columns));
+        return SudokuBoard(m_board_settings.rows, std::vector<Value>(m_board_settings.columns));
     return m_solver->get_solution();
 }
 
-bool Puzzle::has_example() const
+bool SudokuPuzzle::has_example() const
 {
     return m_board_settings.has_example;
 }
 
-Board Puzzle::get_example() const
+SudokuBoard SudokuPuzzle::get_example() const
 {
-    Board board(m_board_settings.rows, std::vector<Value>(m_board_settings.columns));
+    SudokuBoard board(m_board_settings.rows, std::vector<Value>(m_board_settings.columns));
     for (auto examplePoint : m_board_settings.example)
     {
         board[examplePoint.first.first][examplePoint.first.second] = examplePoint.second;
@@ -104,7 +104,7 @@ Board Puzzle::get_example() const
     return board;
 }
 
-Settings::Sudoku::BoardSettings Puzzle::get_board_settings()
+Settings::Sudoku::BoardSettings SudokuPuzzle::get_board_settings()
 {
     return m_board_settings;
 }

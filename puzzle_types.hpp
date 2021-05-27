@@ -6,6 +6,15 @@
 
 namespace Settings {
 
+enum class PuzzleType
+{
+  SUDOKU_9X9,
+  SUDOKU_16X16,
+  TWINSUDOKU_9X15,
+  SUDOKU_MIX_9X9_TWICE,
+  GC414WQ,
+};
+
 enum class PuzzleColor
 {
   NONE,
@@ -21,7 +30,7 @@ enum class PuzzleColor
 
 using Value = int;
 using Position = int;
-using Board = std::vector<std::vector<Value>>;
+using SudokuBoard = std::vector<std::vector<Value>>;
 
 using Point = std::pair<Position, Position>;
 using PointVector = std::vector<Point>;

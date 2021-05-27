@@ -18,7 +18,8 @@ MainWindow::MainWindow(QWidget *parent) :
     PREDEFINED_PUZZLES {{"9x9 Sudoku", Settings::PuzzleType::SUDOKU_9X9},
                         {"16x16 Sudoku", Settings::PuzzleType::SUDOKU_16X16},
                         {"9x15 Twin Sudoku", Settings::PuzzleType::TWINSUDOKU_9X15},
-                        {"Sudoku Mix 9x9 Base", Settings::PuzzleType::SUDOKU_MIX_9X9_TWICE}},
+                        {"Sudoku Mix 9x9 Base", Settings::PuzzleType::SUDOKU_MIX_9X9_TWICE},
+                        {"GC414WQ Hokjesgeest", Settings::PuzzleType::GC414WQ}},
     PUZZLECOLOR_TO_DISPLAYCOLOR {{Settings::PuzzleColor::A, QColor(255,0,0,50) },
                                  {Settings::PuzzleColor::B, QColor(0,0,255,50) },
                                  {Settings::PuzzleColor::C, QColor(0,255,0,50) },
@@ -91,6 +92,14 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->colorCombo->addItem(color.first, static_cast<int>(color.second));
     }
 
+    QImage puzzleImage("../GC414WQ.jpg");
+    QGraphicsScene* scene = new QGraphicsScene();
+    ui->graphicsView->setScene(scene);
+    ui->graphicsView->scene()->clear();
+    scene->addPixmap(QPixmap::fromImage(puzzleImage));
+    ui->graphicsView->viewport()->update();
+    ui->graphicsView->scale(0.8, 0.8);
+
     update_ui_for_new_puzzle();
 }
 
@@ -129,8 +138,8 @@ void MainWindow::save()
         return;
     }
 
-    Board board = parse_board();
-    auto board_settings = m_puzzle->get_board_settings();
+    SudokuBoard board = parse_board();
+    auto board_settings = m_sudoku_puzzle->get_board_settings();
     PuzzleSaver::save_to_file(board_settings, board, file);
 
     ui->output->append(tr("Puzzle was saved to file %1.\n").arg(QDir::toNativeSeparators(file_name)));
@@ -153,8 +162,8 @@ void MainWindow::load()
         return;
     }
 
-    m_puzzle = PuzzleLoader::load_from_file(file);
-    if (m_puzzle)
+    m_sudoku_puzzle = PuzzleLoader::load_from_file(file);
+    if (m_sudoku_puzzle)
     {
         ui->output->append(tr("Puzzle was loaded from file %1.\n").arg(QDir::toNativeSeparators(file_name)));
     }
@@ -168,37 +177,56 @@ void MainWindow::load()
 
 void MainWindow::load_predefined(const std::string& puzzle_name, Settings::PuzzleType puzzle_type)
 {
-    m_puzzle = std::unique_ptr<Puzzle>(new Puzzle(puzzle_type));
-    if (m_puzzle)
+    m_sudoku_puzzle.reset();
+    m_gc_puzzle.reset();
+    if (puzzle_type == Settings::PuzzleType::GC414WQ)
     {
+        m_gc_puzzle = std::make_unique<int>(56);
         ui->output->append(QString::fromStdString("Loading predefined puzzle: " + puzzle_name + "\n"));
     }
-    else
+    else // Sudoku puzzle types
     {
-        ui->output->append("Failed to load the predefined puzzle.\n");
+        m_sudoku_puzzle = std::make_unique<SudokuPuzzle>(puzzle_type);
+        if (m_sudoku_puzzle)
+        {
+            ui->output->append(QString::fromStdString("Loading predefined puzzle: " + puzzle_name + "\n"));
+        }
+        else
+        {
+            ui->output->append("Failed to load the predefined puzzle.\n");
+        }
     }
     update_ui_for_new_puzzle();
 }
 
 void MainWindow::update_ui_for_new_puzzle()
 {
-    if (m_puzzle)
+    m_model.reset();
+    ui->regions->setVisible(false);
+    ui->tableWidget->setVisible(false);
+    exampleAction->setEnabled(false);
+    clearAction->setEnabled(false);
+    saveAction->setEnabled(false);
+    solveAction->setEnabled(false);
+    region_buttons_set_visible(false);
+    ui->graphicsView->setVisible(false);
+    if (m_sudoku_puzzle)
     {
-        ui->tableWidget->setRowCount(m_puzzle->get_rows());
-        ui->tableWidget->setColumnCount(m_puzzle->get_columns());
+        ui->tableWidget->setRowCount(m_sudoku_puzzle->get_rows());
+        ui->tableWidget->setColumnCount(m_sudoku_puzzle->get_columns());
         ui->tableWidget->clearContents();
         ui->tableWidget->clearFocus();
         int width = 30;
-        for (int column = 0; column < m_puzzle->get_columns(); ++column)
+        for (int column = 0; column < m_sudoku_puzzle->get_columns(); ++column)
         {
             ui->tableWidget->setColumnWidth(column, width);
         }
 
         QFont font("Helvetica", 12);
         ui->tableWidget->setFont(font);
-        for (Position row = 0; row < m_puzzle->get_rows(); ++row)
+        for (Position row = 0; row < m_sudoku_puzzle->get_rows(); ++row)
         {
-            for (Position column = 0; column < m_puzzle->get_columns(); ++column)
+            for (Position column = 0; column < m_sudoku_puzzle->get_columns(); ++column)
             {
                 ui->tableWidget->setItem(row, column, new QTableWidgetItem);
                 ui->tableWidget->item(row, column)->setTextAlignment(Qt::AlignCenter | Qt::AlignHCenter);
@@ -212,9 +240,9 @@ void MainWindow::update_ui_for_new_puzzle()
         m_model->insertColumn(0);
         ui->regions->setColumnWidth(0, 120);
 
-        m_model->insertRows(0, m_puzzle->get_regions().size() + 1);
+        m_model->insertRows(0, m_sudoku_puzzle->get_regions().size() + 1);
         int i = 0;
-        for(auto region : m_puzzle->get_regions())
+        for(auto region : m_sudoku_puzzle->get_regions())
         {
             std::ostringstream ss;
             ss << "(" << region.first.front().first << "," << region.first.front().second << ") -- ("
@@ -236,28 +264,21 @@ void MainWindow::update_ui_for_new_puzzle()
 
         ui->regions->setVisible(true);
         ui->tableWidget->setVisible(true);
-        exampleAction->setEnabled(m_puzzle->has_example());
+        exampleAction->setEnabled(m_sudoku_puzzle->has_example());
         clearAction->setEnabled(true);
         saveAction->setEnabled(true);
         solveAction->setEnabled(true);
         region_buttons_set_visible(false);
     }
-    else
+    else if (m_gc_puzzle)
     {
-        m_model.reset();
-        ui->regions->setVisible(false);
-        ui->tableWidget->setVisible(false);
-        exampleAction->setEnabled(false);
-        clearAction->setEnabled(false);
-        saveAction->setEnabled(false);
-        solveAction->setEnabled(false);
-        region_buttons_set_visible(false);
+        ui->graphicsView->setVisible(true);
     }
 }
 
 void MainWindow::color_board()
 {
-    for (Region region : m_puzzle->get_regions())
+    for (Region region : m_sudoku_puzzle->get_regions())
     {
         if (region.second != Settings::PuzzleColor::NONE)
         {
@@ -270,11 +291,11 @@ void MainWindow::color_board()
     }
 }
 
-Board MainWindow::parse_board()
+SudokuBoard MainWindow::parse_board()
 {
-    const Position rows = m_puzzle->get_rows();
-    const Position columns = m_puzzle->get_columns();
-    Board parsed(rows, std::vector<int>(columns));
+    const Position rows = m_sudoku_puzzle->get_rows();
+    const Position columns = m_sudoku_puzzle->get_columns();
+    SudokuBoard parsed(rows, std::vector<int>(columns));
     QFont font("Helvetica", 14, QFont::Bold);
     for (Position row = 0; row < rows; ++row)
     {
@@ -294,12 +315,12 @@ Board MainWindow::parse_board()
     return parsed;
 }
 
-void MainWindow::set_board(Board board_to_set)
+void MainWindow::set_sudoku_board(SudokuBoard board_to_set)
 {
     QFont font("Helvetica", 12);
-    for (Position row = 0; row < m_puzzle->get_rows(); ++row)
+    for (Position row = 0; row < m_sudoku_puzzle->get_rows(); ++row)
     {
-        for (Position column = 0; column < m_puzzle->get_columns(); ++column)
+        for (Position column = 0; column < m_sudoku_puzzle->get_columns(); ++column)
         {
             QTableWidgetItem* item = ui->tableWidget->item(row, column);
             bool board_cell_is_not_empty = board_to_set[row][column] != 0;
@@ -315,40 +336,49 @@ void MainWindow::set_board(Board board_to_set)
 
 void MainWindow::solve()
 {
-    auto board = parse_board();
-    auto t1 = std::chrono::high_resolution_clock::now();
-    if (!m_puzzle->apply_board(board)) {
-        ui->output->append("There is a contradiction in the parsed board!");
-    }
-    if (m_puzzle->solve()) {
-        std::chrono::duration<double, std::milli> time_taken = std::chrono::high_resolution_clock::now() - t1;
-        std::ostringstream ss;
-        ss << "Solution found in " << time_taken.count() << " ms";
-        ui->output->append(QString::fromStdString(ss.str()));
-        set_board(m_puzzle->get_solution());
-    } else {
-        std::ostringstream ss;
-        ss << "Solving the provided parsed is not possible!";
-        ui->output->append(QString::fromStdString(ss.str()));
+    if (m_sudoku_puzzle)
+    {
+        auto board = parse_board();
+        auto t1 = std::chrono::high_resolution_clock::now();
+        if (!m_sudoku_puzzle->apply_board(board)) {
+            ui->output->append("There is a contradiction in the parsed board!");
+        }
+        if (m_sudoku_puzzle->solve()) {
+            std::chrono::duration<double, std::milli> time_taken = std::chrono::high_resolution_clock::now() - t1;
+            std::ostringstream ss;
+            ss << "Solution found in " << time_taken.count() << " ms";
+            ui->output->append(QString::fromStdString(ss.str()));
+            set_sudoku_board(m_sudoku_puzzle->get_solution());
+        } else {
+            std::ostringstream ss;
+            ss << "Solving the provided parsed is not possible!";
+            ui->output->append(QString::fromStdString(ss.str()));
+        }
     }
 }
 
 void MainWindow::clear()
 {
     QFont font("Helvetica", 12);
-    for (Position row = 0; row < m_puzzle->get_rows(); ++row)
+    if (m_sudoku_puzzle)
     {
-        for (Position column = 0; column < m_puzzle->get_columns(); ++column)
+        for (Position row = 0; row < m_sudoku_puzzle->get_rows(); ++row)
         {
-            ui->tableWidget->item(row, column)->setText("");
-            ui->tableWidget->item(row, column)->setFont(font);
+            for (Position column = 0; column < m_sudoku_puzzle->get_columns(); ++column)
+            {
+                ui->tableWidget->item(row, column)->setText("");
+                ui->tableWidget->item(row, column)->setFont(font);
+            }
         }
     }
 }
 
 void MainWindow::set_example()
 {
-    set_board(m_puzzle->get_example());
+    if (m_sudoku_puzzle)
+    {
+        set_sudoku_board(m_sudoku_puzzle->get_example());
+    }
 }
 
 void MainWindow::on_regions_clicked(const QModelIndex &index)
@@ -360,7 +390,7 @@ void MainWindow::on_regions_clicked(const QModelIndex &index)
         return;
     }
     ui->tableWidget->clearSelection();
-    auto region = m_puzzle->get_regions()[region_index];
+    auto region = m_sudoku_puzzle->get_regions()[region_index];
     for (auto point : region.first)
     {
         auto model_index = ui->tableWidget->model()->index(point.first, point.second);
@@ -400,22 +430,22 @@ void MainWindow::on_okButton_clicked()
             region.first.emplace_back(index.row(), index.column());
         }
     }
-    if (region.first.size() != m_puzzle->get_values())
+    if (region.first.size() != m_sudoku_puzzle->get_values())
     {
         ui->output->append(".\n");
         QMessageBox::warning(this, tr("Invalid region"),
                              tr("Region contains %1 points, but should contain %2 points.")
-                             .arg(region.first.size()).arg(m_puzzle->get_values()));
+                             .arg(region.first.size()).arg(m_sudoku_puzzle->get_values()));
     }
     else
     {
         if (m_current_region == ADD_NEW_REGION)
         {
-            m_puzzle->add_region(region);
+            m_sudoku_puzzle->add_region(region);
         }
         else
         {
-            m_puzzle->replace_region(m_current_region, region);
+            m_sudoku_puzzle->replace_region(m_current_region, region);
         }
         update_ui_for_new_puzzle();
     }
@@ -428,6 +458,6 @@ void MainWindow::on_cancelButton_clicked()
 
 void MainWindow::on_deleteButton_clicked()
 {
-    m_puzzle->remove_region(m_current_region);
+    m_sudoku_puzzle->remove_region(m_current_region);
     update_ui_for_new_puzzle();
 }

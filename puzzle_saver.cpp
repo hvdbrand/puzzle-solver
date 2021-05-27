@@ -74,7 +74,7 @@ namespace  {
         }
     }
 
-    void append_example(QDomDocument dom_document, QDomElement sudoku_element, const Board& example_board)
+    void append_example(QDomDocument dom_document, QDomElement sudoku_element, const SudokuBoard& example_board)
     {
         QDomElement example_element = dom_document.createElement("example");
         const int rows = example_board.size();
@@ -95,7 +95,7 @@ namespace  {
         }
     }
 
-    void append_sudoku(QDomDocument dom_document, QDomElement puzzle_element, const Settings::Sudoku::BoardSettings& board_settings, const Board& example_board)
+    void append_sudoku(QDomDocument dom_document, QDomElement puzzle_element, const Settings::Sudoku::BoardSettings& board_settings, const SudokuBoard& example_board)
     {
         QDomElement sudoku_element = dom_document.createElement("sudoku");
         puzzle_element.appendChild(sudoku_element);
@@ -106,7 +106,7 @@ namespace  {
     }
 }
 
-void save_to_file(const Settings::Sudoku::BoardSettings& board_settings, const Board& example_board, QFile& file)
+void save_to_file(const Settings::Sudoku::BoardSettings& board_settings, const SudokuBoard& example_board, QFile& file)
 {
     QDomDocument dom_document;
     QDomElement puzzle = dom_document.createElement("puzzle");

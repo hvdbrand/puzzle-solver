@@ -1,10 +1,10 @@
 #pragma once
 
-#include "puzzle.hpp"
+#include "sudokupuzzle.hpp"
 
 #include <QFile>
 
 namespace PuzzleLoader {
-    std::unique_ptr<Puzzle> load_from_file(QFile& file);
+    std::unique_ptr<SudokuPuzzle> load_from_file(QFile& file);
 
 }

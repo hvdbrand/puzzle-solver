@@ -1,4 +1,4 @@
-#include "puzzle.hpp"
+#include "sudokupuzzle.hpp"
 
 #include <iostream>
 #include <string>
@@ -27,8 +27,8 @@ namespace {
  *  .........
  *
  */
-Board read_board(std::istream& in) {
-    Board parsed(9, std::vector<int>(9));
+SudokuBoard read_board(std::istream& in) {
+    SudokuBoard parsed(9, std::vector<int>(9));
     int lines = 1;
     std::string line;
     while (std::getline(in, line) && lines <= 9) {
@@ -63,7 +63,7 @@ int main() {
     try {
         auto board = read_board(std::cin);
         auto t1 = std::chrono::high_resolution_clock::now();
-        Puzzle puzzle(Settings::PuzzleType::SUDOKU_9X9);
+        SudokuPuzzle puzzle(Settings::PuzzleType::SUDOKU_9X9);
         if (!puzzle.apply_board(board)) {
             std::clog << "There is a contradiction in the parsed!\n";
             return 2;

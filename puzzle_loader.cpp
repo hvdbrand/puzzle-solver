@@ -215,13 +215,13 @@ namespace {
     }
 }
 
-std::unique_ptr<Puzzle> load_from_file(QFile& file)
+std::unique_ptr<SudokuPuzzle> load_from_file(QFile& file)
 {
-    std::unique_ptr<Puzzle> puzzle;
+    std::unique_ptr<SudokuPuzzle> puzzle;
     Settings::Sudoku::BoardSettings board_settings;
     if (load_settings_from_file(&file, board_settings))
     {
-        puzzle = std::unique_ptr<Puzzle>(new Puzzle(board_settings));
+        puzzle = std::unique_ptr<SudokuPuzzle>(new SudokuPuzzle(board_settings));
     }
     return puzzle;
 }

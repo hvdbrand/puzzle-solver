@@ -40,14 +40,14 @@ class SudokuSolver {
 public:
     SudokuSolver(Settings::Sudoku::BoardSettings board_settings, bool write_dimacs = false);
     // Returns true if the provided board satisfies the constraints
-    bool apply_board(Board const&);
+    bool apply_board(SudokuBoard const&);
     // Returns true if the sudoku has a solution
     bool solve();
-    Board get_solution() const;
+    SudokuBoard get_solution() const;
 
 private:
     Minisat::Var toVar(int row, int column, int value) const;
-    bool is_valid(Board const& b) const;
+    bool is_valid(SudokuBoard const& b) const;
 
     void one_square_one_value();
     void non_duplicated_values();

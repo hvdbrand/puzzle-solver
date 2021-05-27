@@ -394,7 +394,7 @@ Minisat::Var SudokuSolver::toVar(int row, int column, int value)  const{
     return row * m_board_settings.columns * m_board_settings.values + column * m_board_settings.values + value;
 }
 
-bool SudokuSolver::is_valid(Board const& b) const {
+bool SudokuSolver::is_valid(SudokuBoard const& b) const {
     if (b.size() != m_board_settings.rows) {
         return false;
     }
@@ -479,7 +479,7 @@ void SudokuSolver::empty_points()
     }
 }
 
-bool SudokuSolver::apply_board(Board const& b) {
+bool SudokuSolver::apply_board(SudokuBoard const& b) {
     assert(is_valid(b) && "Provided board is not valid!");
     bool ret = true;
     for (int row = 0; row < m_board_settings.rows; ++row) {
@@ -497,8 +497,8 @@ bool SudokuSolver::solve() {
     return solver.solve();
 }
 
-Board SudokuSolver::get_solution() const {
-    Board b(m_board_settings.rows, std::vector<int>(m_board_settings.columns));
+SudokuBoard SudokuSolver::get_solution() const {
+    SudokuBoard b(m_board_settings.rows, std::vector<int>(m_board_settings.columns));
     for (int row = 0; row < m_board_settings.rows; ++row) {
         for (int col = 0; col < m_board_settings.columns; ++col) {
             if (m_board_settings.empty_points.count(Point(row,col)) == 0)
