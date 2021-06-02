@@ -5,6 +5,7 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QStandardItemModel>
 
 #include <chrono>
@@ -99,6 +100,8 @@ MainWindow::MainWindow(QWidget *parent) :
     scene->addPixmap(QPixmap::fromImage(puzzleImage));
     ui->graphicsView->viewport()->update();
     ui->graphicsView->scale(0.8, 0.8);
+
+    ui->graphicsView->installEventFilter(this);
 
     update_ui_for_new_puzzle();
 }
@@ -460,4 +463,23 @@ void MainWindow::on_deleteButton_clicked()
 {
     m_sudoku_puzzle->remove_region(m_current_region);
     update_ui_for_new_puzzle();
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::MouseButtonPress)
+    {
+        QMouseEvent* mouse_event = dynamic_cast<QMouseEvent*>(event);
+        QPoint pos = mouse_event->pos();
+        std::ostringstream ss;
+
+        const int top_width = 20;
+        const int top_height = 55;
+        const int cell_width = 47;
+        const int cell_height = 34;
+
+        ss << "Mouse clicked on (x,y)=(" << pos.x() << "," << pos.y() << ") row= " << (pos.y() - top_height)/cell_height << " col= " << (pos.x() - top_height)/cell_width;
+        ui->output->append(QString::fromStdString(ss.str()));
+    }
+    return false;
 }

@@ -32,6 +32,7 @@ private slots:
     void on_deleteButton_clicked();
 
 private:
+    bool eventFilter(QObject *obj, QEvent *event);
     void save();
     void load();    
     void load_predefined(const std::string& puzzle_name, Settings::PuzzleType puzzle_type);
