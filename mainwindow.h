@@ -3,7 +3,9 @@
 
 #include "sudokupuzzle.hpp"
 #include <QAbstractItemModel>
+#include <QGraphicsLineItem>
 #include <QMainWindow>
+#include <QPen>
 #include <map>
 #include <memory>
 #include <vector>
@@ -33,6 +35,8 @@ private slots:
 
 private:
     bool eventFilter(QObject *obj, QEvent *event);
+    void toggle_horizontal_line(int line, int segment);
+    void toggle_vertical_line(int line, int segment);
     void save();
     void load();    
     void load_predefined(const std::string& puzzle_name, Settings::PuzzleType puzzle_type);
@@ -56,6 +60,10 @@ private:
     const std::vector<std::pair<std::string, Settings::PuzzleType>> PREDEFINED_PUZZLES;
     const std::map<Settings::PuzzleColor, QColor> PUZZLECOLOR_TO_DISPLAYCOLOR;
     const std::vector<std::pair<QString, Settings::PuzzleColor>> COLORNAME_TO_PUZZLECOLOR;
+
+    std::vector<std::vector<QGraphicsLineItem*>> m_horizontal_lines;
+    std::vector<std::vector<QGraphicsLineItem*>> m_vertical_lines;
+    QPen m_gc_pen;
 
     std::unique_ptr<SudokuPuzzle> m_sudoku_puzzle;
     std::unique_ptr<int> m_gc_puzzle;

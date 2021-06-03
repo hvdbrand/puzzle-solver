@@ -104,6 +104,21 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->graphicsView->installEventFilter(this);
 
     update_ui_for_new_puzzle();
+
+    m_horizontal_lines.resize(12);
+    for (auto& lines : m_horizontal_lines)
+    {
+        lines.resize(10, NULL);
+    }
+
+    m_vertical_lines.resize(11);
+    for (auto& lines: m_vertical_lines)
+    {
+        lines.resize(11, NULL);
+    }
+
+    m_gc_pen.setWidth(5);
+    m_gc_pen.setBrush(Qt::blue);
 }
 
 MainWindow::~MainWindow()
@@ -480,6 +495,62 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 
         ss << "Mouse clicked on (x,y)=(" << pos.x() << "," << pos.y() << ") row= " << (pos.y() - top_height)/cell_height << " col= " << (pos.x() - top_height)/cell_width;
         ui->output->append(QString::fromStdString(ss.str()));
+
+        for(int line=0; line<12; line++)
+        {
+            for (int segment=0;segment<10; segment++)
+            {
+                toggle_horizontal_line(line,segment);
+            }
+        }
+
+        for(int line=0; line<11; line++)
+        {
+            for (int segment=0;segment<11; segment++)
+            {
+                toggle_vertical_line(line,segment);
+            }
+        }
     }
     return false;
+}
+
+void MainWindow::toggle_horizontal_line(int line, int segment)
+{
+    const int top_width = 20;
+    const int top_height = 55;
+    const int cell_width = 47;
+    const int cell_height = 34;
+    // TOD: assert on out of bound
+    if (m_horizontal_lines[line][segment] == NULL)
+    {
+        QPointF start = ui->graphicsView->mapToScene(QPoint(top_width + 10 + segment * cell_width, top_height + line * cell_height + 2));
+        QPointF end = ui->graphicsView->mapToScene(QPoint(top_width  + (segment + 1) * cell_width - 10, top_height + line * cell_height + 2));
+        m_horizontal_lines[line][segment] = ui->graphicsView->scene()->addLine(start.x(), start.y(), end.x(), end.y(), m_gc_pen);
+    }
+    else
+    {
+        ui->graphicsView->scene()->removeItem(m_horizontal_lines[line][segment]);
+        m_horizontal_lines[line][segment] = NULL;
+    }
+}
+
+void MainWindow::toggle_vertical_line(int line, int segment)
+{
+    const int top_width = 20;
+    const int top_height = 55;
+    const int cell_width = 47;
+    const int cell_height = 34;
+    // TOD: assert on out of bound
+    if (m_vertical_lines[line][segment] == NULL)
+    {
+        QPointF start = ui->graphicsView->mapToScene(QPoint(top_width + line * cell_width - 3, top_height + 5 + segment * cell_height));
+        QPointF end = ui->graphicsView->mapToScene(QPoint(top_width  + line * cell_width - 3, top_height + (segment + 1) * cell_height - 5));
+        m_vertical_lines[line][segment] = ui->graphicsView->scene()->addLine(start.x(), start.y(), end.x(), end.y(), m_gc_pen);
+    }
+    else
+    {
+        ui->graphicsView->scene()->removeItem(m_vertical_lines[line][segment]);
+        m_vertical_lines[line][segment] = NULL;
+    }
 }
