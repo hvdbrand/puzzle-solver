@@ -34,7 +34,15 @@ private slots:
     void on_deleteButton_clicked();
 
 private:
+    enum class PointerAtLineSegment
+    {
+        NO,
+        VERTICAL_LINE,
+        HORIZONTAL_LINE,
+    };
+
     bool eventFilter(QObject *obj, QEvent *event);
+    PointerAtLineSegment is_pointer_at_line_segment(QPoint position, int &line, int &segment) const;
     void toggle_horizontal_line(int line, int segment);
     void toggle_vertical_line(int line, int segment);
     void save();
@@ -60,6 +68,18 @@ private:
     const std::vector<std::pair<std::string, Settings::PuzzleType>> PREDEFINED_PUZZLES;
     const std::map<Settings::PuzzleColor, QColor> PUZZLECOLOR_TO_DISPLAYCOLOR;
     const std::vector<std::pair<QString, Settings::PuzzleColor>> COLORNAME_TO_PUZZLECOLOR;
+
+    // Screen position of top left corner
+    const int GC_TOP_WIDTH = 18;
+    const int GC_TOP_HEIGHT = 56;
+    // Dimensions of single cell
+    const int GC_CELL_WIDTH = 47;
+    const int GC_CELL_HEIGHT = 34;
+    // Number of cells
+    const int GC_HORIZONTAL_CELL_COUNT = 10;
+    const int GC_VERTICAL_CELL_COUNT = 11;
+    const int GC_HORIZONTAL_LINE_COUNT = GC_VERTICAL_CELL_COUNT + 1;
+    const int GC_VERTICAL_LINE_COUNT = GC_HORIZONTAL_CELL_COUNT + 1;
 
     std::vector<std::vector<QGraphicsLineItem*>> m_horizontal_lines;
     std::vector<std::vector<QGraphicsLineItem*>> m_vertical_lines;

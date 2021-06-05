@@ -105,16 +105,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     update_ui_for_new_puzzle();
 
-    m_horizontal_lines.resize(12);
-    for (auto& lines : m_horizontal_lines)
+    m_horizontal_lines.resize(GC_HORIZONTAL_LINE_COUNT);
+    for (auto& line : m_horizontal_lines)
     {
-        lines.resize(10, NULL);
+        line.resize(GC_HORIZONTAL_CELL_COUNT, NULL);
     }
 
-    m_vertical_lines.resize(11);
-    for (auto& lines: m_vertical_lines)
+    m_vertical_lines.resize(GC_VERTICAL_LINE_COUNT);
+    for (auto& line: m_vertical_lines)
     {
-        lines.resize(11, NULL);
+        line.resize(GC_VERTICAL_CELL_COUNT, NULL);
     }
 
     m_gc_pen.setWidth(5);
@@ -291,6 +291,7 @@ void MainWindow::update_ui_for_new_puzzle()
     else if (m_gc_puzzle)
     {
         ui->graphicsView->setVisible(true);
+        clearAction->setEnabled(true);
     }
 }
 
@@ -386,6 +387,31 @@ void MainWindow::clear()
             {
                 ui->tableWidget->item(row, column)->setText("");
                 ui->tableWidget->item(row, column)->setFont(font);
+            }
+        }
+    }
+    else if (m_gc_puzzle)
+    {
+        for(int line=0; line<GC_HORIZONTAL_LINE_COUNT; line++)
+        {
+            for (int segment=0;segment<GC_HORIZONTAL_CELL_COUNT; segment++)
+            {
+                if (m_horizontal_lines[line][segment] != NULL)
+                {
+                    ui->graphicsView->scene()->removeItem(m_horizontal_lines[line][segment]);
+                    m_horizontal_lines[line][segment] = NULL;
+                }
+            }
+        }
+        for(int line=0; line<GC_VERTICAL_LINE_COUNT; line++)
+        {
+            for (int segment=0;segment<GC_VERTICAL_CELL_COUNT; segment++)
+            {
+                if (m_vertical_lines[line][segment] != NULL)
+                {
+                    ui->graphicsView->scene()->removeItem(m_vertical_lines[line][segment]);
+                    m_vertical_lines[line][segment] = NULL;
+                }
             }
         }
     }
@@ -485,47 +511,81 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     if (event->type() == QEvent::MouseButtonPress)
     {
         QMouseEvent* mouse_event = dynamic_cast<QMouseEvent*>(event);
-        QPoint pos = mouse_event->pos();
-        std::ostringstream ss;
-
-        const int top_width = 20;
-        const int top_height = 55;
-        const int cell_width = 47;
-        const int cell_height = 34;
-
-        ss << "Mouse clicked on (x,y)=(" << pos.x() << "," << pos.y() << ") row= " << (pos.y() - top_height)/cell_height << " col= " << (pos.x() - top_height)/cell_width;
-        ui->output->append(QString::fromStdString(ss.str()));
-
-        for(int line=0; line<12; line++)
+        int line;
+        int segment;
+        PointerAtLineSegment pointer_at_segment = is_pointer_at_line_segment(mouse_event->pos(), line, segment);
+        switch (pointer_at_segment)
         {
-            for (int segment=0;segment<10; segment++)
-            {
-                toggle_horizontal_line(line,segment);
-            }
-        }
-
-        for(int line=0; line<11; line++)
-        {
-            for (int segment=0;segment<11; segment++)
-            {
-                toggle_vertical_line(line,segment);
-            }
+        case PointerAtLineSegment::HORIZONTAL_LINE:
+            toggle_horizontal_line(line, segment);
+            break;
+        case PointerAtLineSegment::VERTICAL_LINE:
+            toggle_vertical_line(line, segment);
+            break;
         }
     }
+    // Single that further handling of the event is still needed
     return false;
+}
+
+MainWindow::PointerAtLineSegment MainWindow::is_pointer_at_line_segment(QPoint position, int &line, int &segment) const
+{
+    const int line_proximity = 10;
+    const int corner_clearance = 10;
+    int rel_x = position.x() - GC_TOP_WIDTH;
+    int rel_y = position.y() - GC_TOP_HEIGHT;
+    if ((rel_x < -1 * line_proximity) || (rel_x > GC_CELL_WIDTH * GC_HORIZONTAL_CELL_COUNT + line_proximity)||
+        (rel_y < -1 * line_proximity) || (rel_y > GC_CELL_HEIGHT * GC_VERTICAL_CELL_COUNT + line_proximity))
+    {
+        return PointerAtLineSegment::NO;
+    }
+    PointerAtLineSegment pointer_at_segment = PointerAtLineSegment::NO;
+    int cell_x = rel_x / GC_CELL_WIDTH;
+    int cell_y = rel_y / GC_CELL_HEIGHT;
+    int diff_x = rel_x % GC_CELL_WIDTH;
+    int diff_y = rel_y % GC_CELL_HEIGHT;
+    int increased_x = 0;
+    int increased_y = 0;
+    if (diff_x > 0.5 * GC_CELL_WIDTH)
+    {
+        diff_x -= GC_CELL_WIDTH;
+        increased_x = 1;
+    }
+    if (diff_y > 0.5 * GC_CELL_HEIGHT)
+    {
+        diff_y -= GC_CELL_HEIGHT;
+        increased_y = 1;
+    }
+    bool x_in_range = std::abs(diff_x) < line_proximity;
+    bool y_in_range = std::abs(diff_y) < line_proximity;
+    if (x_in_range && y_in_range)
+    {
+        pointer_at_segment = PointerAtLineSegment::NO;
+    }
+    else if (x_in_range)
+    {
+        pointer_at_segment = PointerAtLineSegment::VERTICAL_LINE;
+        line = cell_x + increased_x;
+        segment = cell_y;
+    }
+    else if (y_in_range)
+    {
+        pointer_at_segment = PointerAtLineSegment::HORIZONTAL_LINE;
+        line = cell_y + increased_y;
+        segment = cell_x;
+    }
+    return pointer_at_segment;
 }
 
 void MainWindow::toggle_horizontal_line(int line, int segment)
 {
-    const int top_width = 20;
-    const int top_height = 55;
-    const int cell_width = 47;
-    const int cell_height = 34;
-    // TOD: assert on out of bound
+    assert((line >=0) && (line < GC_HORIZONTAL_LINE_COUNT) && (segment >= 0) && (segment < GC_HORIZONTAL_CELL_COUNT));
+    const int not_drawn_near_corner = 0;
+    const int offset_to_position_over_line = 2;
     if (m_horizontal_lines[line][segment] == NULL)
     {
-        QPointF start = ui->graphicsView->mapToScene(QPoint(top_width + 10 + segment * cell_width, top_height + line * cell_height + 2));
-        QPointF end = ui->graphicsView->mapToScene(QPoint(top_width  + (segment + 1) * cell_width - 10, top_height + line * cell_height + 2));
+        QPointF start = ui->graphicsView->mapToScene(QPoint(GC_TOP_WIDTH + not_drawn_near_corner + segment * GC_CELL_WIDTH, GC_TOP_HEIGHT + line * GC_CELL_HEIGHT + offset_to_position_over_line));
+        QPointF end = ui->graphicsView->mapToScene(QPoint(GC_TOP_WIDTH + (segment + 1) * GC_CELL_WIDTH - not_drawn_near_corner, GC_TOP_HEIGHT + line * GC_CELL_HEIGHT + offset_to_position_over_line));
         m_horizontal_lines[line][segment] = ui->graphicsView->scene()->addLine(start.x(), start.y(), end.x(), end.y(), m_gc_pen);
     }
     else
@@ -537,15 +597,13 @@ void MainWindow::toggle_horizontal_line(int line, int segment)
 
 void MainWindow::toggle_vertical_line(int line, int segment)
 {
-    const int top_width = 20;
-    const int top_height = 55;
-    const int cell_width = 47;
-    const int cell_height = 34;
-    // TOD: assert on out of bound
+    assert((line >=0) && (line < GC_VERTICAL_LINE_COUNT) && (segment >= 0) && (segment < GC_VERTICAL_CELL_COUNT));
+    const int not_drawn_near_corner = 0;
+    const int offset_to_position_over_line = -1;
     if (m_vertical_lines[line][segment] == NULL)
     {
-        QPointF start = ui->graphicsView->mapToScene(QPoint(top_width + line * cell_width - 3, top_height + 5 + segment * cell_height));
-        QPointF end = ui->graphicsView->mapToScene(QPoint(top_width  + line * cell_width - 3, top_height + (segment + 1) * cell_height - 5));
+        QPointF start = ui->graphicsView->mapToScene(QPoint(GC_TOP_WIDTH + line * GC_CELL_WIDTH + offset_to_position_over_line, GC_TOP_HEIGHT + not_drawn_near_corner + segment * GC_CELL_HEIGHT));
+        QPointF end = ui->graphicsView->mapToScene(QPoint(GC_TOP_WIDTH  + line * GC_CELL_WIDTH + offset_to_position_over_line, GC_TOP_HEIGHT + (segment + 1) * GC_CELL_HEIGHT - not_drawn_near_corner));
         m_vertical_lines[line][segment] = ui->graphicsView->scene()->addLine(start.x(), start.y(), end.x(), end.y(), m_gc_pen);
     }
     else
