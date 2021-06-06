@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "sudokupuzzle.hpp"
+#include "gcpuzzle.hpp"
 #include <QAbstractItemModel>
 #include <QGraphicsLineItem>
 #include <QMainWindow>
@@ -50,8 +51,10 @@ private:
     void load_predefined(const std::string& puzzle_name, Settings::PuzzleType puzzle_type);
     void update_ui_for_new_puzzle();
     void color_board();
-    SudokuBoard parse_board();
+    SudokuBoard parse_sudoku_board();
     void set_sudoku_board(SudokuBoard board_to_set);
+    GcBoard parse_gc_board();
+    void set_gc_board(GcBoard board_to_set);
 
     void clear();
     void set_example();
@@ -75,18 +78,13 @@ private:
     // Dimensions of single cell
     const int GC_CELL_WIDTH = 47;
     const int GC_CELL_HEIGHT = 34;
-    // Number of cells
-    const int GC_HORIZONTAL_CELL_COUNT = 10;
-    const int GC_VERTICAL_CELL_COUNT = 11;
-    const int GC_HORIZONTAL_LINE_COUNT = GC_VERTICAL_CELL_COUNT + 1;
-    const int GC_VERTICAL_LINE_COUNT = GC_HORIZONTAL_CELL_COUNT + 1;
 
     std::vector<std::vector<QGraphicsLineItem*>> m_horizontal_lines;
     std::vector<std::vector<QGraphicsLineItem*>> m_vertical_lines;
     QPen m_gc_pen;
 
     std::unique_ptr<SudokuPuzzle> m_sudoku_puzzle;
-    std::unique_ptr<int> m_gc_puzzle;
+    std::unique_ptr<GcPuzzle> m_gc_puzzle;
     std::unique_ptr<QAbstractItemModel> m_model;
 
     const int ADD_NEW_REGION = -1;

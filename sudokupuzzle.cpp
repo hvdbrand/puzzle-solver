@@ -12,22 +12,16 @@ const std::map<Settings::PuzzleType, Settings::Sudoku::Type> SUDOKU_TYPES {
 
 SudokuPuzzle::SudokuPuzzle(Settings::PuzzleType predefined_puzzle_type)
     : m_board_settings(Settings::Sudoku::get_board_settings(SUDOKU_TYPES.at(predefined_puzzle_type)))
-    , m_solver(NULL)
 {
 }
 
 SudokuPuzzle::SudokuPuzzle(const Settings::Sudoku::BoardSettings& board_settings)
     : m_board_settings(board_settings)
-    , m_solver(NULL)
 {
 }
 
 SudokuPuzzle::~SudokuPuzzle()
 {
-    if (m_solver != NULL)
-    {
-        delete m_solver;
-    }
 }
 
 int SudokuPuzzle::get_values() const
@@ -50,41 +44,39 @@ RegionVector SudokuPuzzle::get_regions() const
     return m_board_settings.regions;
 }
 
-bool SudokuPuzzle::replace_region(int i, Region& region)
+void SudokuPuzzle::replace_region(int i, Region& region)
 {
+    assert((i >= 0) && (i < m_board_settings.regions.size()));
     m_board_settings.regions[i] = region;
 }
 
-bool SudokuPuzzle::remove_region(int i)
+void SudokuPuzzle::remove_region(int i)
 {
+    assert((i >= 0) && (i < m_board_settings.regions.size()));
     m_board_settings.regions.erase(m_board_settings.regions.begin() +  i);
 }
 
-bool SudokuPuzzle::add_region(Region& region)
+void SudokuPuzzle::add_region(Region& region)
 {
     m_board_settings.regions.push_back(region);
 }
 
 bool SudokuPuzzle::apply_board(const SudokuBoard& board)
 {
-    if (m_solver != NULL)
-    {
-        delete m_solver;
-    }
-    m_solver = new SudokuSolver(m_board_settings);
+    m_solver = std::make_unique<SudokuSolver>(m_board_settings);
     return m_solver->apply_board(board);
 }
 
 bool SudokuPuzzle::solve()
 {
-    if (m_solver == NULL)
+    if (!m_solver)
         return false;
     return m_solver->solve();
 }
 
 SudokuBoard SudokuPuzzle::get_solution() const
 {
-    if (m_solver == NULL)
+    if (!m_solver)
         return SudokuBoard(m_board_settings.rows, std::vector<Value>(m_board_settings.columns));
     return m_solver->get_solution();
 }

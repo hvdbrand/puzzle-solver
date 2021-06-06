@@ -105,16 +105,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     update_ui_for_new_puzzle();
 
-    m_horizontal_lines.resize(GC_HORIZONTAL_LINE_COUNT);
+    m_horizontal_lines.resize(GcPuzzle::GC_HORIZONTAL_LINE_COUNT);
     for (auto& line : m_horizontal_lines)
     {
-        line.resize(GC_HORIZONTAL_CELL_COUNT, NULL);
+        line.resize(GcPuzzle::GC_HORIZONTAL_CELL_COUNT, NULL);
     }
 
-    m_vertical_lines.resize(GC_VERTICAL_LINE_COUNT);
+    m_vertical_lines.resize(GcPuzzle::GC_VERTICAL_LINE_COUNT);
     for (auto& line: m_vertical_lines)
     {
-        line.resize(GC_VERTICAL_CELL_COUNT, NULL);
+        line.resize(GcPuzzle::GC_VERTICAL_CELL_COUNT, NULL);
     }
 
     m_gc_pen.setWidth(5);
@@ -156,7 +156,7 @@ void MainWindow::save()
         return;
     }
 
-    SudokuBoard board = parse_board();
+    SudokuBoard board = parse_sudoku_board();
     auto board_settings = m_sudoku_puzzle->get_board_settings();
     PuzzleSaver::save_to_file(board_settings, board, file);
 
@@ -199,7 +199,7 @@ void MainWindow::load_predefined(const std::string& puzzle_name, Settings::Puzzl
     m_gc_puzzle.reset();
     if (puzzle_type == Settings::PuzzleType::GC414WQ)
     {
-        m_gc_puzzle = std::make_unique<int>(56);
+        m_gc_puzzle = std::make_unique<GcPuzzle>();
         ui->output->append(QString::fromStdString("Loading predefined puzzle: " + puzzle_name + "\n"));
     }
     else // Sudoku puzzle types
@@ -292,6 +292,7 @@ void MainWindow::update_ui_for_new_puzzle()
     {
         ui->graphicsView->setVisible(true);
         clearAction->setEnabled(true);
+        solveAction->setEnabled(true);
     }
 }
 
@@ -310,7 +311,7 @@ void MainWindow::color_board()
     }
 }
 
-SudokuBoard MainWindow::parse_board()
+SudokuBoard MainWindow::parse_sudoku_board()
 {
     const Position rows = m_sudoku_puzzle->get_rows();
     const Position columns = m_sudoku_puzzle->get_columns();
@@ -353,11 +354,60 @@ void MainWindow::set_sudoku_board(SudokuBoard board_to_set)
     }
 }
 
+GcBoard MainWindow::parse_gc_board()
+{
+    GcBoard board;
+    board.horizontal_lines.resize(GcPuzzle::GC_HORIZONTAL_LINE_COUNT, std::vector<bool>(GcPuzzle::GC_HORIZONTAL_CELL_COUNT, false));
+    board.vertical_lines.resize(GcPuzzle::GC_VERTICAL_LINE_COUNT, std::vector<bool>(GcPuzzle::GC_VERTICAL_CELL_COUNT, false));
+    for(int line=0; line<GcPuzzle::GC_HORIZONTAL_LINE_COUNT; line++)
+    {
+        for (int segment=0;segment<GcPuzzle::GC_HORIZONTAL_CELL_COUNT; segment++)
+        {
+            board.horizontal_lines[line][segment] = (m_horizontal_lines[line][segment] != NULL);
+        }
+    }
+    for(int line=0; line<GcPuzzle::GC_VERTICAL_LINE_COUNT; line++)
+    {
+        for (int segment=0;segment<GcPuzzle::GC_VERTICAL_CELL_COUNT; segment++)
+        {
+            board.vertical_lines[line][segment] = (m_vertical_lines[line][segment] != NULL);
+        }
+    }
+    return board;
+}
+
+void MainWindow::set_gc_board(GcBoard board_to_set)
+{
+    clear();
+    m_gc_pen.setColor(Qt::green);
+    for(int line=0; line<GcPuzzle::GC_HORIZONTAL_LINE_COUNT; line++)
+    {
+        for (int segment=0;segment<GcPuzzle::GC_HORIZONTAL_CELL_COUNT; segment++)
+        {
+            if (board_to_set.horizontal_lines[line][segment])
+            {
+                toggle_horizontal_line(line, segment);
+            }
+        }
+    }
+    for(int line=0; line<GcPuzzle::GC_VERTICAL_LINE_COUNT; line++)
+    {
+        for (int segment=0;segment<GcPuzzle::GC_VERTICAL_CELL_COUNT; segment++)
+        {
+            if (board_to_set.vertical_lines[line][segment])
+            {
+                toggle_vertical_line(line, segment);
+            }
+        }
+    }
+    m_gc_pen.setColor(Qt::blue);
+}
+
 void MainWindow::solve()
 {
     if (m_sudoku_puzzle)
     {
-        auto board = parse_board();
+        auto board = parse_sudoku_board();
         auto t1 = std::chrono::high_resolution_clock::now();
         if (!m_sudoku_puzzle->apply_board(board)) {
             ui->output->append("There is a contradiction in the parsed board!");
@@ -370,7 +420,26 @@ void MainWindow::solve()
             set_sudoku_board(m_sudoku_puzzle->get_solution());
         } else {
             std::ostringstream ss;
-            ss << "Solving the provided parsed is not possible!";
+            ss << "Solving the provided parsed board is not possible!";
+            ui->output->append(QString::fromStdString(ss.str()));
+        }
+    }
+    else if (m_gc_puzzle)
+    {
+        auto board = parse_gc_board();
+        auto t1 = std::chrono::high_resolution_clock::now();
+        if (!m_gc_puzzle->apply_board(board)) {
+            ui->output->append("There is a contradiction in the parsed board!");
+        }
+        if (m_gc_puzzle->solve()) {
+            std::chrono::duration<double, std::milli> time_taken = std::chrono::high_resolution_clock::now() - t1;
+            std::ostringstream ss;
+            ss << "Solution found in " << time_taken.count() << " ms";
+            ui->output->append(QString::fromStdString(ss.str()));
+            set_gc_board(m_gc_puzzle->get_solution());
+        } else {
+            std::ostringstream ss;
+            ss << "Solving the provided parsed board is not possible!";
             ui->output->append(QString::fromStdString(ss.str()));
         }
     }
@@ -392,9 +461,9 @@ void MainWindow::clear()
     }
     else if (m_gc_puzzle)
     {
-        for(int line=0; line<GC_HORIZONTAL_LINE_COUNT; line++)
+        for(int line=0; line<GcPuzzle::GC_HORIZONTAL_LINE_COUNT; line++)
         {
-            for (int segment=0;segment<GC_HORIZONTAL_CELL_COUNT; segment++)
+            for (int segment=0;segment<GcPuzzle::GC_HORIZONTAL_CELL_COUNT; segment++)
             {
                 if (m_horizontal_lines[line][segment] != NULL)
                 {
@@ -403,9 +472,9 @@ void MainWindow::clear()
                 }
             }
         }
-        for(int line=0; line<GC_VERTICAL_LINE_COUNT; line++)
+        for(int line=0; line<GcPuzzle::GC_VERTICAL_LINE_COUNT; line++)
         {
-            for (int segment=0;segment<GC_VERTICAL_CELL_COUNT; segment++)
+            for (int segment=0;segment<GcPuzzle::GC_VERTICAL_CELL_COUNT; segment++)
             {
                 if (m_vertical_lines[line][segment] != NULL)
                 {
@@ -534,8 +603,8 @@ MainWindow::PointerAtLineSegment MainWindow::is_pointer_at_line_segment(QPoint p
     const int corner_clearance = 10;
     int rel_x = position.x() - GC_TOP_WIDTH;
     int rel_y = position.y() - GC_TOP_HEIGHT;
-    if ((rel_x < -1 * line_proximity) || (rel_x > GC_CELL_WIDTH * GC_HORIZONTAL_CELL_COUNT + line_proximity)||
-        (rel_y < -1 * line_proximity) || (rel_y > GC_CELL_HEIGHT * GC_VERTICAL_CELL_COUNT + line_proximity))
+    if ((rel_x < -1 * line_proximity) || (rel_x > GC_CELL_WIDTH * GcPuzzle::GC_HORIZONTAL_CELL_COUNT + line_proximity)||
+        (rel_y < -1 * line_proximity) || (rel_y > GC_CELL_HEIGHT * GcPuzzle::GC_VERTICAL_CELL_COUNT + line_proximity))
     {
         return PointerAtLineSegment::NO;
     }
@@ -579,7 +648,7 @@ MainWindow::PointerAtLineSegment MainWindow::is_pointer_at_line_segment(QPoint p
 
 void MainWindow::toggle_horizontal_line(int line, int segment)
 {
-    assert((line >=0) && (line < GC_HORIZONTAL_LINE_COUNT) && (segment >= 0) && (segment < GC_HORIZONTAL_CELL_COUNT));
+    assert((line >=0) && (line < GcPuzzle::GC_HORIZONTAL_LINE_COUNT) && (segment >= 0) && (segment < GcPuzzle::GC_HORIZONTAL_CELL_COUNT));
     const int not_drawn_near_corner = 0;
     const int offset_to_position_over_line = 2;
     if (m_horizontal_lines[line][segment] == NULL)
@@ -597,7 +666,7 @@ void MainWindow::toggle_horizontal_line(int line, int segment)
 
 void MainWindow::toggle_vertical_line(int line, int segment)
 {
-    assert((line >=0) && (line < GC_VERTICAL_LINE_COUNT) && (segment >= 0) && (segment < GC_VERTICAL_CELL_COUNT));
+    assert((line >=0) && (line < GcPuzzle::GC_VERTICAL_LINE_COUNT) && (segment >= 0) && (segment < GcPuzzle::GC_VERTICAL_CELL_COUNT));
     const int not_drawn_near_corner = 0;
     const int offset_to_position_over_line = -1;
     if (m_vertical_lines[line][segment] == NULL)

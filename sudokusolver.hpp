@@ -51,7 +51,6 @@ private:
 
     void one_square_one_value();
     void non_duplicated_values();
-    void empty_points();
     void exactly_one_true(Minisat::vec<Minisat::Lit> const& literals);
     void init_variables();
 

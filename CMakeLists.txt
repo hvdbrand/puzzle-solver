@@ -9,6 +9,10 @@ find_package(Qt5 COMPONENTS Widgets Gui Core Xml REQUIRED)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_library(puzzle-solver
+    gcpuzzle.cpp
+    gcpuzzle.hpp
+    gcsolver.cpp
+    gcsolver.hpp
     sudokupuzzle.cpp
     sudokupuzzle.hpp
     puzzle_loader.cpp

@@ -41,3 +41,10 @@ using RegionVector = std::vector<Region>;
 
 using ExamplePoint = std::pair<Point, Value>;
 using ExampleSet = std::set<ExamplePoint>;
+
+using GcSegments = std::vector<std::vector<bool>>;
+struct GcBoard
+{
+    GcSegments horizontal_lines;
+    GcSegments vertical_lines;
+};

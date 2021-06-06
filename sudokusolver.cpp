@@ -418,7 +418,6 @@ void SudokuSolver::init_variables() {
     }
     for (int r = 0; r < m_board_settings.rows; ++r) {
         for (int c = 0; c < m_board_settings.columns; ++c) {
-            //if (m_board_settings.empty_points.)
             for (int v = 0; v < m_board_settings.values; ++v) {
                 auto var = solver.newVar();
                 if (m_write_dimacs) {
@@ -472,14 +471,7 @@ void SudokuSolver::non_duplicated_values() {
     }
 }
 
-void SudokuSolver::empty_points()
-{
-    for (auto point : m_board_settings.empty_points) {
-
-    }
-}
-
-bool SudokuSolver::apply_board(SudokuBoard const& b) {
+bool SudokuSolver::apply_board(const SudokuBoard& b) {
     assert(is_valid(b) && "Provided board is not valid!");
     bool ret = true;
     for (int row = 0; row < m_board_settings.rows; ++row) {

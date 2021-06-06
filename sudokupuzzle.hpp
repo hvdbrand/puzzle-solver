@@ -16,9 +16,9 @@ public:
     int get_columns() const;
     RegionVector get_regions() const;
 
-    bool replace_region(int i, Region& region);
-    bool remove_region(int i);
-    bool add_region(Region& region);
+    void replace_region(int i, Region& region);
+    void remove_region(int i);
+    void add_region(Region& region);
 
     // Returns true if the provided board satisfies the puzzle constraints
     bool apply_board(const SudokuBoard& board);
@@ -34,5 +34,5 @@ public:
 private:
     Settings::Sudoku::BoardSettings m_board_settings;
 
-    SudokuSolver* m_solver;
+    std::unique_ptr<SudokuSolver> m_solver;
 };
