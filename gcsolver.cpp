@@ -262,28 +262,140 @@ void GcSolver::add_clauses_for_corners()
     Minisat::vec<Minisat::Lit> literals;
     literals.push(Minisat::mkLit(toVar(0, 0, true)));
     literals.push(Minisat::mkLit(toVar(0, 0, false)));
-    none_or_both(literals);
+    none_or_two(literals);
     literals.clear();
     literals.push(Minisat::mkLit(toVar(0, m_solver_settings.horizontal_cell_count - 1, true)));
     literals.push(Minisat::mkLit(toVar(m_solver_settings.vertical_line_count - 1, 0, false)));
-    none_or_both(literals);
+    none_or_two(literals);
     literals.clear();
     literals.push(Minisat::mkLit(toVar(m_solver_settings.horizontal_line_count - 1, 0, true)));
     literals.push(Minisat::mkLit(toVar(0, m_solver_settings.vertical_cell_count - 1, false)));
-    none_or_both(literals);
+    none_or_two(literals);
     literals.clear();
     literals.push(Minisat::mkLit(toVar(m_solver_settings.horizontal_line_count - 1, m_solver_settings.horizontal_cell_count - 1, true)));
     literals.push(Minisat::mkLit(toVar(m_solver_settings.vertical_line_count - 1, m_solver_settings.vertical_cell_count - 1, false)));
-    none_or_both(literals);
+    none_or_two(literals);
+    for(size_t col=1; col < m_solver_settings.horizontal_cell_count; ++col)
+    {
+        literals.clear();
+        literals.push(Minisat::mkLit(toVar(0, col - 1, true)));
+        literals.push(Minisat::mkLit(toVar(0, col, true)));
+        literals.push(Minisat::mkLit(toVar(col, 0, false)));
+        none_or_two(literals);
+        literals.clear();
+        literals.push(Minisat::mkLit(toVar(m_solver_settings.horizontal_line_count - 1, col - 1, true)));
+        literals.push(Minisat::mkLit(toVar(m_solver_settings.horizontal_line_count - 1, col, true)));
+        literals.push(Minisat::mkLit(toVar(col, m_solver_settings.vertical_cell_count - 1, false)));
+        none_or_two(literals);
+    }
+    for(size_t row=1; row < m_solver_settings.vertical_cell_count; ++row)
+    {
+        literals.clear();
+        literals.push(Minisat::mkLit(toVar(0, row - 1, false)));
+        literals.push(Minisat::mkLit(toVar(0, row, false)));
+        literals.push(Minisat::mkLit(toVar(row, 0, true)));
+        none_or_two(literals);
+        literals.clear();
+        literals.push(Minisat::mkLit(toVar(m_solver_settings.vertical_line_count - 1, row - 1, false)));
+        literals.push(Minisat::mkLit(toVar(m_solver_settings.vertical_line_count - 1, row, false)));
+        literals.push(Minisat::mkLit(toVar(row, m_solver_settings.horizontal_cell_count - 1, true)));
+        none_or_two(literals);
+    }
+    for (size_t row=1; row < m_solver_settings.vertical_cell_count; ++row)
+    {
+        for(size_t col=1; col < m_solver_settings.horizontal_cell_count; ++col)
+        {
+            literals.clear();
+            literals.push(Minisat::mkLit(toVar(row, col - 1, true)));
+            literals.push(Minisat::mkLit(toVar(row, col, true)));
+            literals.push(Minisat::mkLit(toVar(col, row - 1, false)));
+            literals.push(Minisat::mkLit(toVar(col, row, false)));
+            //none_or_two(literals);
+        }
+    }
 }
 
-void GcSolver::none_or_both(Minisat::vec<Minisat::Lit> const& literals) {
-    if (m_write_dimacs) {
-        log_clause( literals[0], ~literals[1]);
-        log_clause(~literals[0],  literals[1]);
+void GcSolver::none_or_two(Minisat::vec<Minisat::Lit> const& literals) {
+    if (literals.size() == 2)
+    {
+        if (m_write_dimacs) {
+            log_clause( literals[0], ~literals[1]);
+            log_clause(~literals[0],  literals[1]);
+        }
+        m_solver.addClause( literals[0], ~literals[1]);
+        m_solver.addClause(~literals[0],  literals[1]);
     }
-    m_solver.addClause( literals[0], ~literals[1]);
-    m_solver.addClause(~literals[0],  literals[1]);
+    else if (literals.size() == 3)
+    {
+        Minisat::vec<Minisat::Lit> inv_literals;
+        inv_literals.push(~literals[0]);
+        inv_literals.push(~literals[1]);
+        inv_literals.push(~literals[2]);
+        if (m_write_dimacs) {
+            log_clause(inv_literals);
+        }
+        m_solver.addClause(inv_literals);
+        Minisat::vec<Minisat::Lit> current_literals;
+        current_literals.push(~literals[0]);
+        current_literals.push( literals[1]);
+        current_literals.push( literals[2]);
+        if (m_write_dimacs) {
+            log_clause(current_literals);
+        }
+        m_solver.addClause(current_literals);
+        current_literals.clear();
+        current_literals.push( literals[0]);
+        current_literals.push(~literals[1]);
+        current_literals.push( literals[2]);
+        if (m_write_dimacs) {
+            log_clause(current_literals);
+        }
+        m_solver.addClause(current_literals);
+        current_literals.clear();
+        current_literals.push( literals[0]);
+        current_literals.push( literals[1]);
+        current_literals.push(~literals[2]);
+        if (m_write_dimacs) {
+            log_clause(current_literals);
+        }
+        m_solver.addClause(current_literals);
+    }
+    else if (literals.size() == 4)
+    {
+        Minisat::vec<Minisat::Lit> inv_literals;
+        for (size_t i=0; i<literals.size(); ++i)
+        {
+            inv_literals.push(~literals[i]);
+        }
+        if (m_write_dimacs) {
+            log_clause(inv_literals);
+        }
+        m_solver.addClause(inv_literals);
+        for (size_t i=0; i<literals.size(); ++i)
+        {
+            Minisat::vec<Minisat::Lit> current_literals;
+            Minisat::vec<Minisat::Lit> current_inv_literals;
+            for (size_t j=0; j<literals.size(); ++j)
+            {
+                if (j == i)
+                {
+                    current_literals.push(inv_literals[j]);
+                    current_inv_literals.push(literals[j]);
+                }
+                else
+                {
+                    current_literals.push(literals[j]);
+                    current_inv_literals.push(inv_literals[j]);
+                }
+            }
+            if (m_write_dimacs) {
+                log_clause(current_literals);
+                log_clause(current_inv_literals);
+            }
+            m_solver.addClause(current_literals);
+            m_solver.addClause(current_inv_literals);
+        }
+    }
 }
 
 void GcSolver::none_true(Minisat::vec<Minisat::Lit> const& literals) {
@@ -357,33 +469,6 @@ void GcSolver::exactly_three_true(Minisat::vec<Minisat::Lit> const& literals) {
         }
     }
 }
-
-/*
-void SudokuSolver::one_square_one_value() {
-    for (int row = 0; row < m_board_settings.rows; ++row) {
-        for (int column = 0; column < m_board_settings.columns; ++column) {
-            Minisat::vec<Minisat::Lit> literals;
-            for (int value = 0; value < m_board_settings.values; ++value) {
-                literals.push(Minisat::mkLit(toVar(row, column, value)));
-            }
-            exactly_one_true(literals);
-        }
-    }
-}
-
-void SudokuSolver::non_duplicated_values() {
-    // Allow every value only once in an adjacent region
-    for (auto region : m_board_settings.regions)
-    {
-        for (int value = 0; value < m_board_settings.values; ++value) {
-            Minisat::vec<Minisat::Lit> literals;
-            for (auto point : region.first) {
-                literals.push(Minisat::mkLit(toVar(point.first, point.second, value)));
-            }
-            exactly_one_true(literals);
-        }
-    }
-}*/
 
 bool GcSolver::apply_board(const GcBoard& b) {
     assert(is_valid(b) && "Provided board is not valid!");

@@ -33,7 +33,7 @@ private:
     void exactly_one_true(Minisat::vec<Minisat::Lit> const& literals);
     void exactly_two_true(Minisat::vec<Minisat::Lit> const& literals);
     void exactly_three_true(Minisat::vec<Minisat::Lit> const& literals);
-    void none_or_both(Minisat::vec<Minisat::Lit> const& literals);
+    void none_or_two(Minisat::vec<Minisat::Lit> const& literals);
 
     const bool m_write_dimacs = false;
     Minisat::Solver m_solver;
