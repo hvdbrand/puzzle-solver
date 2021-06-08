@@ -150,6 +150,7 @@ GcSolver::GcSolver(GcSolverSettings solver_settings, bool write_dimacs)
 
     init_variables();
     add_clauses_for_segments_surrounding_cells();
+    add_clauses_for_corners();
     // TODO: Add clauses to enforce a single closed structur
     // An intermediate step might be enforcing 0 or 2 lines on every crossing
 }
@@ -225,8 +226,6 @@ void GcSolver::init_variables() {
 
 void GcSolver::add_clauses_for_segments_surrounding_cells()
 {
-
-
     for (int row = 0; row < m_solver_settings.vertical_cell_count; ++row)
     {
         for (int col = 0; col< m_solver_settings.horizontal_cell_count; ++col)
@@ -246,7 +245,8 @@ void GcSolver::add_clauses_for_segments_surrounding_cells()
                 case 1:
                     exactly_one_true(literals);
                     break;
-                case 2: // TODO
+                case 2:
+                    exactly_two_true(literals);
                     break;
                 case 3:
                     exactly_three_true(literals);
@@ -255,6 +255,35 @@ void GcSolver::add_clauses_for_segments_surrounding_cells()
             }
         }
     }
+}
+
+void GcSolver::add_clauses_for_corners()
+{
+    Minisat::vec<Minisat::Lit> literals;
+    literals.push(Minisat::mkLit(toVar(0, 0, true)));
+    literals.push(Minisat::mkLit(toVar(0, 0, false)));
+    none_or_both(literals);
+    literals.clear();
+    literals.push(Minisat::mkLit(toVar(0, m_solver_settings.horizontal_cell_count - 1, true)));
+    literals.push(Minisat::mkLit(toVar(m_solver_settings.vertical_line_count - 1, 0, false)));
+    none_or_both(literals);
+    literals.clear();
+    literals.push(Minisat::mkLit(toVar(m_solver_settings.horizontal_line_count - 1, 0, true)));
+    literals.push(Minisat::mkLit(toVar(0, m_solver_settings.vertical_cell_count - 1, false)));
+    none_or_both(literals);
+    literals.clear();
+    literals.push(Minisat::mkLit(toVar(m_solver_settings.horizontal_line_count - 1, m_solver_settings.horizontal_cell_count - 1, true)));
+    literals.push(Minisat::mkLit(toVar(m_solver_settings.vertical_line_count - 1, m_solver_settings.vertical_cell_count - 1, false)));
+    none_or_both(literals);
+}
+
+void GcSolver::none_or_both(Minisat::vec<Minisat::Lit> const& literals) {
+    if (m_write_dimacs) {
+        log_clause( literals[0], ~literals[1]);
+        log_clause(~literals[0],  literals[1]);
+    }
+    m_solver.addClause( literals[0], ~literals[1]);
+    m_solver.addClause(~literals[0],  literals[1]);
 }
 
 void GcSolver::none_true(Minisat::vec<Minisat::Lit> const& literals) {
@@ -278,6 +307,32 @@ void GcSolver::exactly_one_true(Minisat::vec<Minisat::Lit> const& literals) {
             }
             m_solver.addClause(~literals[i], ~literals[j]);
         }
+    }
+}
+
+void GcSolver::exactly_two_true(Minisat::vec<Minisat::Lit> const& literals) {
+    Minisat::vec<Minisat::Lit> inv_literals;
+    for (auto lit : literals) {
+        inv_literals.push(~lit);
+    }
+
+    for (size_t i = 0; i < literals.size(); ++i) {
+        Minisat::vec<Minisat::Lit> current_inv_literals;
+        Minisat::vec<Minisat::Lit> current_literals;
+        for (size_t j = 0; j < literals.size(); ++j) {
+            if (j != i)
+            {
+                current_literals.push(literals[j]);
+                current_inv_literals.push(inv_literals[j]);
+            }
+        }
+        if (m_write_dimacs) {
+
+            log_clause(current_literals);
+            log_clause(current_inv_literals);
+        }
+        m_solver.addClause(current_literals);
+        m_solver.addClause(current_inv_literals);
     }
 }
 
